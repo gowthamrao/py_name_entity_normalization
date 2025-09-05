@@ -1,12 +1,13 @@
 """
 Tests for the Data Access Layer (DAL).
 """
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock, call, patch
 
 import numpy as np
+import pytest
 
 from pyNameEntityNormalization.database import dal
-from pyNameEntityNormalization.database.models import OMOPIndex
+from pyNameEntityNormalization.database.models import IndexMetadata, OMOPIndex
 
 
 def test_find_nearest_neighbors(mock_db_session, test_settings):
@@ -130,3 +131,31 @@ def test_bulk_insert_omop_concepts(mock_db_session, mock_pandas_read_csv):
     assert len(args[1]) == len(df)
     assert args[1][0]["concept_id"] == 1
     assert args[1][0]["concept_name"] == "Aspirin"
+
+
+def test_models_repr():
+    """
+    Tests the __repr__ methods of the ORM models.
+    """
+    # Test IndexMetadata
+    metadata = IndexMetadata(key="test_key", value={"some": "value"})
+    assert repr(metadata) == "<IndexMetadata(key='test_key', value='{'some': 'value'}')>"
+
+    # Test OMOPIndex
+    omop_concept = OMOPIndex(concept_id=123, concept_name="Test Concept")
+    assert repr(omop_concept) == "<OMOPIndex(concept_id=123, name='Test Concept')>"
+
+
+@patch("pyNameEntityNormalization.database.dal.Base.metadata")
+def test_create_database_schema(mock_metadata):
+    """
+    Tests that create_database_schema calls the underlying SQLAlchemy method.
+    """
+    # Arrange
+    mock_engine = MagicMock()
+
+    # Act
+    dal.create_database_schema(mock_engine)
+
+    # Assert
+    mock_metadata.create_all.assert_called_once_with(mock_engine)

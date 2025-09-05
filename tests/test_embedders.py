@@ -38,14 +38,39 @@ def test_sentence_transformer_embedder_init(
     Tests the initialization of the SentenceTransformerEmbedder.
     """
     # Act
-    embedder = SentenceTransformerEmbedder(model_name=test_settings.EMBEDDING_MODEL_NAME)
+    embedder = SentenceTransformerEmbedder(
+        model_name=test_settings.EMBEDDING_MODEL_NAME, device="cpu"
+    )
 
     # Assert
     # Check that the underlying model was initialized correctly
     mock_sentence_transformer.assert_called_once_with(
-        test_settings.EMBEDDING_MODEL_NAME, device=embedder.device
+        test_settings.EMBEDDING_MODEL_NAME, device="cpu"
     )
     assert embedder.model is not None
+
+
+def test_sentence_transformer_embedder_init_device_auto(
+    mocker, mock_sentence_transformer, test_settings
+):
+    """
+    Tests that the device is auto-detected correctly if not provided.
+    """
+    # Test with CUDA available
+    mocker.patch("torch.cuda.is_available", return_value=True)
+    embedder = SentenceTransformerEmbedder(model_name=test_settings.EMBEDDING_MODEL_NAME)
+    assert embedder.device == "cuda"
+    mock_sentence_transformer.assert_called_with(
+        test_settings.EMBEDDING_MODEL_NAME, device="cuda"
+    )
+
+    # Test with CUDA not available
+    mocker.patch("torch.cuda.is_available", return_value=False)
+    embedder = SentenceTransformerEmbedder(model_name=test_settings.EMBEDDING_MODEL_NAME)
+    assert embedder.device == "cpu"
+    mock_sentence_transformer.assert_called_with(
+        test_settings.EMBEDDING_MODEL_NAME, device="cpu"
+    )
 
 
 def test_sentence_transformer_embedder_encode(

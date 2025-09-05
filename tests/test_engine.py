@@ -148,3 +148,25 @@ def test_normalize_no_candidates_found(
     # Assert
     assert engine.ranker.rank.call_count == 0 # Ranker should not be called
     assert len(result.candidates) == 0
+
+
+@pytest.mark.parametrize("text_input", ["", "   ", "!!@#$%"])
+def test_normalize_empty_input_text(
+    test_settings, mock_dal, mock_factories, mock_db_session, text_input
+):
+    """
+    Tests that if the input text is empty or becomes empty after cleaning,
+    the pipeline returns an empty list of candidates.
+    """
+    # Arrange
+    mock_dal.get_index_metadata.return_value = {}
+    engine = NormalizationEngine(settings=test_settings)
+
+    # Act
+    result = engine.normalize(NormalizationInput(text=text_input))
+
+    # Assert
+    assert engine.embedder.encode.call_count == 0
+    assert mock_dal.find_nearest_neighbors.call_count == 0
+    assert engine.ranker.rank.call_count == 0
+    assert len(result.candidates) == 0
