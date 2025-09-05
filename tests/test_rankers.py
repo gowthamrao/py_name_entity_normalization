@@ -46,7 +46,9 @@ def test_cross_encoder_ranker(mocker, test_settings, sample_candidates):
         return_value=mock_cross_encoder_model,
     )
 
-    ranker = CrossEncoderRanker(model_name=test_settings.CROSS_ENCODER_MODEL_NAME)
+    ranker = CrossEncoderRanker(
+        model_name=test_settings.CROSS_ENCODER_MODEL_NAME, device="cpu"
+    )
 
     # Act
     ranked = ranker.rank("Aspirin", sample_candidates)
@@ -67,6 +69,53 @@ def test_cross_encoder_ranker(mocker, test_settings, sample_candidates):
     assert ranked[0].concept_id == 2  # score 0.9
     assert ranked[1].concept_id == 1  # score 0.5
     assert ranked[2].concept_id == 3  # score 0.2
+
+
+def test_cross_encoder_ranker_init_device_auto(mocker, test_settings):
+    """
+    Tests that the device is auto-detected correctly if not provided.
+    """
+    mock_cross_encoder_model = MagicMock()
+    mock_cross_encoder_constructor = mocker.patch(
+        "pyNameEntityNormalization.rankers.cross_encoder.CrossEncoder",
+        return_value=mock_cross_encoder_model,
+    )
+
+    # Test with CUDA available
+    mocker.patch("torch.cuda.is_available", return_value=True)
+    ranker = CrossEncoderRanker(model_name=test_settings.CROSS_ENCODER_MODEL_NAME)
+    assert ranker.device == "cuda"
+    mock_cross_encoder_constructor.assert_called_with(
+        test_settings.CROSS_ENCODER_MODEL_NAME, max_length=512, device="cuda"
+    )
+
+    # Test with CUDA not available
+    mocker.patch("torch.cuda.is_available", return_value=False)
+    ranker = CrossEncoderRanker(model_name=test_settings.CROSS_ENCODER_MODEL_NAME)
+    assert ranker.device == "cpu"
+    mock_cross_encoder_constructor.assert_called_with(
+        test_settings.CROSS_ENCODER_MODEL_NAME, max_length=512, device="cpu"
+    )
+
+
+def test_cross_encoder_ranker_empty_candidates(mocker, test_settings):
+    """
+    Tests that the ranker handles an empty list of candidates gracefully.
+    """
+    # Arrange
+    mock_cross_encoder_model = MagicMock()
+    mocker.patch(
+        "pyNameEntityNormalization.rankers.cross_encoder.CrossEncoder",
+        return_value=mock_cross_encoder_model,
+    )
+    ranker = CrossEncoderRanker(model_name=test_settings.CROSS_ENCODER_MODEL_NAME)
+
+    # Act
+    ranked = ranker.rank("query", [])
+
+    # Assert
+    assert ranked == []
+    mock_cross_encoder_model.predict.assert_not_called()
 
 
 def test_llm_ranker():
