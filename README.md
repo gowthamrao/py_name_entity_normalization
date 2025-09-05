@@ -46,6 +46,8 @@ The application is configured via environment variables. You can create a `.env`
 
 Using the package involves two main steps: building the index and then using the engine to normalize entities.
 
+For a detailed, end-to-end example of how to integrate this package with a Named Entity Recognition (NER) tool, see our **[How to Use Guide](./docs/how_to_use_guide.md)**.
+
 ### 1. Building the Index (CLI)
 
 The package provides a CLI, `nen-indexer`, to build the vector search index from an OMOP `CONCEPT.csv` file.
