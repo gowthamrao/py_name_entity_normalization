@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     # --- Database Configuration ---
     DATABASE_URL: str = Field(
-        "postgresql+psycopg2://user:password@localhost:5432/nen_db",
+        "postgresql+psycopg://user:password@localhost:5432/nen_db",
         description="SQLAlchemy database connection string.",
     )
 
