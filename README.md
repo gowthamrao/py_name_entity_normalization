@@ -33,7 +33,7 @@ The application is configured via environment variables. You can create a `.env`
 
 | Variable                      | Description                                                               | Default                                           |
 | ----------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------- |
-| `DATABASE_URL`                | SQLAlchemy connection string for your PostgreSQL DB.                      | `postgresql+psycopg2://user:password@localhost:5432/nen_db` |
+| `DATABASE_URL`                | SQLAlchemy connection string for your PostgreSQL DB.                      | `postgresql+psycopg://user:password@localhost:5432/nen_db` |
 | `EMBEDDING_MODEL_NAME`        | The `sentence-transformers` model for embeddings.                         | `cambridgeltl/SapBERT-from-PubMedBERT-fulltext`     |
 | `EMBEDDING_MODEL_DIMENSION`   | The vector dimension of the embedding model.                              | `768`                                             |
 | `RERANKING_STRATEGY`          | The re-ranking strategy (`cosine`, `cross_encoder`, `llm`).                 | `cosine`                                          |
