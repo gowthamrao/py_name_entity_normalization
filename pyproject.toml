@@ -36,6 +36,7 @@ black = "^23.11.0"
 ruff = "^0.1.6"
 mypy = "^1.7.1"
 types-tqdm = "^4.66.0.3"
+pre-commit = "^3.5.0"
 
 [tool.poetry.scripts]
 nen-indexer = "pyNameEntityNormalization.cli:app"
@@ -51,7 +52,6 @@ target-version = ['py310']
 [tool.ruff]
 line-length = 88
 select = ["E", "W", "F", "I", "C", "B"]
-ignore = ["E501"]
 
 [tool.mypy]
 python_version = "3.10"
