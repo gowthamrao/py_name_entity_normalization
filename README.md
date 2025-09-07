@@ -17,15 +17,17 @@ The system is built on a robust and scalable architecture, leveraging a PostgreS
 
 ## Installation
 
-You can install the package using pip:
+This project is managed with [Poetry](https://python-poetry.org/).
+
+To install the package and its dependencies, run:
 
 ```bash
-pip install .
+poetry install
 ```
-(Assuming you are in the root of this project). For development, install with the `dev` dependencies:
-```bash
-pip install -e ".[dev]"
-```
+
+This will create a virtual environment and install all the necessary packages.
+
+For instructions on how to set up a development environment, please see our [Contributing Guide](./CONTRIBUTING.md).
 
 ## Configuration
 
