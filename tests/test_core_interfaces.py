@@ -2,8 +2,7 @@
 Tests for the abstract base classes in core.interfaces.
 """
 import pytest
-
-from pyNameEntityNormalization.core.interfaces import IEmbedder, IRanker
+from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
 
 
 def test_iembedder_interfaces_raise_not_implemented():

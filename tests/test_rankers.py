@@ -4,11 +4,10 @@ Tests for the ranker modules, including concrete implementations and the factory
 from unittest.mock import MagicMock
 
 import pytest
-
-from pyNameEntityNormalization.rankers.cosine import CosineSimilarityRanker
-from pyNameEntityNormalization.rankers.cross_encoder import CrossEncoderRanker
-from pyNameEntityNormalization.rankers.factory import get_ranker
-from pyNameEntityNormalization.rankers.llm import LLMRanker
+from py_name_entity_normalization.rankers.cosine import CosineSimilarityRanker
+from py_name_entity_normalization.rankers.cross_encoder import CrossEncoderRanker
+from py_name_entity_normalization.rankers.factory import get_ranker
+from py_name_entity_normalization.rankers.llm import LLMRanker
 
 
 def test_cosine_similarity_ranker(sample_candidates):
@@ -42,7 +41,7 @@ def test_cross_encoder_ranker(mocker, test_settings, sample_candidates):
     # Mock scores, in a different order than the original candidates
     mock_cross_encoder_model.predict.return_value = [0.5, 0.9, 0.2]
     mocker.patch(
-        "pyNameEntityNormalization.rankers.cross_encoder.CrossEncoder",
+        "py_name_entity_normalization.rankers.cross_encoder.CrossEncoder",
         return_value=mock_cross_encoder_model,
     )
 
@@ -77,7 +76,7 @@ def test_cross_encoder_ranker_init_device_auto(mocker, test_settings):
     """
     mock_cross_encoder_model = MagicMock()
     mock_cross_encoder_constructor = mocker.patch(
-        "pyNameEntityNormalization.rankers.cross_encoder.CrossEncoder",
+        "py_name_entity_normalization.rankers.cross_encoder.CrossEncoder",
         return_value=mock_cross_encoder_model,
     )
 
@@ -105,7 +104,7 @@ def test_cross_encoder_ranker_empty_candidates(mocker, test_settings):
     # Arrange
     mock_cross_encoder_model = MagicMock()
     mocker.patch(
-        "pyNameEntityNormalization.rankers.cross_encoder.CrossEncoder",
+        "py_name_entity_normalization.rankers.cross_encoder.CrossEncoder",
         return_value=mock_cross_encoder_model,
     )
     ranker = CrossEncoderRanker(model_name=test_settings.CROSS_ENCODER_MODEL_NAME)
@@ -135,9 +134,13 @@ def test_get_ranker_factory(test_settings, mocker):
     Tests the get_ranker factory function for all strategies.
     """
     # Mock the ranker classes to prevent model loading
-    mock_cosine = mocker.patch("pyNameEntityNormalization.rankers.factory.CosineSimilarityRanker")
-    mock_cross = mocker.patch("pyNameEntityNormalization.rankers.factory.CrossEncoderRanker")
-    mock_llm = mocker.patch("pyNameEntityNormalization.rankers.factory.LLMRanker")
+    mock_cosine = mocker.patch(
+        "py_name_entity_normalization.rankers.factory.CosineSimilarityRanker"
+    )
+    mock_cross = mocker.patch(
+        "py_name_entity_normalization.rankers.factory.CrossEncoderRanker"
+    )
+    mock_llm = mocker.patch("py_name_entity_normalization.rankers.factory.LLMRanker")
 
     # Test Cosine strategy
     test_settings.RERANKING_STRATEGY = "cosine"
@@ -147,7 +150,9 @@ def test_get_ranker_factory(test_settings, mocker):
     # Test Cross-Encoder strategy
     test_settings.RERANKING_STRATEGY = "cross_encoder"
     get_ranker(test_settings)
-    mock_cross.assert_called_once_with(model_name=test_settings.CROSS_ENCODER_MODEL_NAME)
+    mock_cross.assert_called_once_with(
+        model_name=test_settings.CROSS_ENCODER_MODEL_NAME
+    )
 
     # Test LLM strategy
     test_settings.RERANKING_STRATEGY = "llm"

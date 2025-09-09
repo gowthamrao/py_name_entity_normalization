@@ -79,9 +79,7 @@ class IRanker(ABC):
     """
 
     @abstractmethod
-    def rank(
-        self, query: str, candidates: List[Candidate]
-    ) -> List[RankedCandidate]:
+    def rank(self, query: str, candidates: List[Candidate]) -> List[RankedCandidate]:
         """
         Re-ranks a list of candidates based on a query.
 

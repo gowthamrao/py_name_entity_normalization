@@ -15,12 +15,8 @@ class LLMRanker(IRanker):
     integrating with LLM-based re-ranking services or models.
     """
 
-    def rank(
-        self, query: str, candidates: List[Candidate]
-    ) -> List[RankedCandidate]:
+    def rank(self, query: str, candidates: List[Candidate]) -> List[RankedCandidate]:
         """
         This method is not yet implemented and will raise an error if called.
         """
-        raise NotImplementedError(
-            "LLM-based re-ranking is not yet implemented."
-        )
+        raise NotImplementedError("LLM-based re-ranking is not yet implemented.")

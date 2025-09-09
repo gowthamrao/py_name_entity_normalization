@@ -1,11 +1,24 @@
 [tool.poetry]
-name = "pyNameEntityNormalization"
+name = "py-name-entity-normalization"
 version = "0.1.0"
 description = "A production-ready Python package for Named Entity Normalization (NEN) using a hybrid generate-and-rank approach with pgvector and sentence-transformers."
 authors = ["Gowtham Rao <rao@ohdsi.org>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "pyNameEntityNormalization", from = "src"}]
+homepage = "https://github.com/OHDSI/pyNameEntityNormalization"
+repository = "https://github.com/OHDSI/pyNameEntityNormalization"
+documentation = "https://github.com/OHDSI/pyNameEntityNormalization#readme"
+classifiers=[
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+packages = [{include = "py_name_entity_normalization", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -39,7 +52,7 @@ types-tqdm = "^4.66.0.3"
 pre-commit = "^3.5.0"
 
 [tool.poetry.scripts]
-nen-indexer = "pyNameEntityNormalization.cli:app"
+nen-indexer = "py_name_entity_normalization.cli:app"
 
 [build-system]
 requires = ["poetry-core"]
@@ -64,7 +77,7 @@ plugins = "sqlalchemy.ext.mypy.plugin"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q --cov=src/pyNameEntityNormalization --cov-report=term-missing"
+addopts = "-ra -q --cov=src/py_name_entity_normalization --cov-report=term-missing"
 testpaths = [
     "tests",
 ]

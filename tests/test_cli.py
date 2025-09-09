@@ -4,10 +4,8 @@ Tests for the Command-Line Interface (CLI).
 import runpy
 from unittest.mock import MagicMock
 
-import pytest
+from py_name_entity_normalization.cli import app
 from typer.testing import CliRunner
-
-from pyNameEntityNormalization.cli import app
 
 runner = CliRunner()
 
@@ -17,12 +15,10 @@ def test_cli_build_index(mocker):
     Tests the build-index command in a success scenario.
     """
     # Arrange
-    mock_builder_class = mocker.patch(
-        "pyNameEntityNormalization.cli.IndexBuilder"
-    )
+    mock_builder_class = mocker.patch("py_name_entity_normalization.cli.IndexBuilder")
     mock_builder_instance = MagicMock()
     mock_builder_class.return_value = mock_builder_instance
-    mocker.patch("pyNameEntityNormalization.cli.get_session")
+    mocker.patch("py_name_entity_normalization.cli.get_session")
 
     # Create a dummy file to pass the 'exists=True' check
     with runner.isolated_filesystem():
@@ -65,7 +61,7 @@ def test_cli_verify_index_success(mocker):
     """
     # Arrange
     mock_engine_class = mocker.patch(
-        "pyNameEntityNormalization.cli.NormalizationEngine"
+        "py_name_entity_normalization.cli.NormalizationEngine"
     )
     mock_engine_instance = MagicMock()
     mock_engine_instance.embedder.get_model_name.return_value = "verified-model"
@@ -88,7 +84,7 @@ def test_cli_verify_index_failure(mocker):
     """
     # Arrange
     mock_engine_class = mocker.patch(
-        "pyNameEntityNormalization.cli.NormalizationEngine"
+        "py_name_entity_normalization.cli.NormalizationEngine"
     )
     mock_engine_class.side_effect = ValueError("Test Error")
 
@@ -110,5 +106,5 @@ def test_cli_main_entrypoint(mocker):
     # We mock the __call__ method of the Typer app object itself
     # to prevent the CLI from actually running, and just assert it was called.
     mock_typer_call = mocker.patch("typer.main.Typer.__call__")
-    runpy.run_module("pyNameEntityNormalization.cli", run_name="__main__")
+    runpy.run_module("py_name_entity_normalization.cli", run_name="__main__")
     mock_typer_call.assert_called_once()

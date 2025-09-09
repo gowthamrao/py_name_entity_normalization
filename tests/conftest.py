@@ -10,10 +10,9 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pandas as pd
 import pytest
-
-from pyNameEntityNormalization.config import Settings
-from pyNameEntityNormalization.core.interfaces import IEmbedder, IRanker
-from pyNameEntityNormalization.core.schemas import Candidate, RankedCandidate
+from py_name_entity_normalization.config import Settings
+from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
+from py_name_entity_normalization.core.schemas import Candidate, RankedCandidate
 
 
 @pytest.fixture
@@ -40,7 +39,7 @@ def mock_db_session():
     MagicMock object, preventing any real database connections during tests.
     """
     with patch(
-        "pyNameEntityNormalization.database.connection.get_session"
+        "py_name_entity_normalization.database.connection.get_session"
     ) as mock_get_session:
         mock_session = MagicMock()
         mock_get_session.return_value.__enter__.return_value = mock_session
@@ -111,17 +110,20 @@ def sample_candidates() -> list[Candidate]:
         ),
     ]
 
+
 @pytest.fixture
 def mock_pandas_read_csv(mocker):
     """
     Mocks pandas.read_csv to return a controlled DataFrame iterator.
     """
-    dummy_df = pd.DataFrame({
-        "concept_id": [1, 2, 3],
-        "concept_name": ["Aspirin", "Tylenol", "Ibuprofen"],
-        "domain_id": ["Drug", "Drug", "Drug"],
-        "vocabulary_id": ["RxNorm", "RxNorm", "RxNorm"],
-        "concept_class_id": ["Ingredient", "Ingredient", "Ingredient"],
-    })
+    dummy_df = pd.DataFrame(
+        {
+            "concept_id": [1, 2, 3],
+            "concept_name": ["Aspirin", "Tylenol", "Ibuprofen"],
+            "domain_id": ["Drug", "Drug", "Drug"],
+            "vocabulary_id": ["RxNorm", "RxNorm", "RxNorm"],
+            "concept_class_id": ["Ingredient", "Ingredient", "Ingredient"],
+        }
+    )
     # Return an iterator to simulate chunking
     return mocker.patch("pandas.read_csv", return_value=[dummy_df])

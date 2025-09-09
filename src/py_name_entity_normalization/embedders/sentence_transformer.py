@@ -30,7 +30,8 @@ class SentenceTransformerEmbedder(IEmbedder):
         else:
             self.device = device
 
-        print(f"Loading embedding model '{self._model_name}' onto device '{self.device}'...")
+        print(f"Loading embedding model '{self._model_name}'...")
+        print(f"Using device: '{self.device}'")
         self.model = SentenceTransformer(self._model_name, device=self.device)
         print("Model loaded successfully.")
 

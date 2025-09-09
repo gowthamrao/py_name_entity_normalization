@@ -2,8 +2,7 @@
 Tests for utility functions.
 """
 import pytest
-
-from pyNameEntityNormalization.utils.preprocessing import clean_text
+from py_name_entity_normalization.utils.preprocessing import clean_text
 
 
 @pytest.mark.parametrize(
@@ -12,7 +11,7 @@ from pyNameEntityNormalization.utils.preprocessing import clean_text
         ("Aspirin 100mg", "aspirin 100mg"),
         ("  Multiple   Spaces  ", "multiple spaces"),
         ("With-Special_Chars!", "with-specialchars"),
-        (" Tylenol® ", "tylenol"), # Check ® removal
+        (" Tylenol® ", "tylenol"),  # Check ® removal
         ("", ""),
         ("  ", ""),
     ],

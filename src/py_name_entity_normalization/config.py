@@ -6,7 +6,7 @@ variables, providing a single, type-safe source of truth for all settings.
 This approach makes the application easily configurable in different
 environments (development, testing, production).
 """
-from typing import Dict, List
+from typing import Dict
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -31,17 +31,23 @@ class Settings(BaseSettings):
     # --- Embedding Model Configuration ---
     EMBEDDING_MODEL_NAME: str = Field(
         "cambridgeltl/SapBERT-from-PubMedBERT-fulltext",
-        description="The name of the sentence-transformer model to use for embeddings.",
+        description=(
+            "The name of the sentence-transformer model to use for embeddings."
+        ),
     )
     EMBEDDING_MODEL_DIMENSION: int = Field(
         768,
-        description="The dimension of the embeddings produced by the model. SapBERT is 768.",
+        description=(
+            "The dimension of the embeddings produced by the model. SapBERT is 768."
+        ),
     )
 
     # --- Ranker Configuration ---
     RERANKING_STRATEGY: str = Field(
         "cosine",
-        description="The re-ranking strategy to use ('cosine', 'cross_encoder', 'llm').",
+        description=(
+            "The re-ranking strategy to use ('cosine', 'cross_encoder', 'llm')."
+        ),
     )
     CROSS_ENCODER_MODEL_NAME: str = Field(
         "cross-encoder/ms-marco-MiniLM-L-6-v2",
@@ -54,7 +60,10 @@ class Settings(BaseSettings):
     )
     DEFAULT_CONFIDENCE_THRESHOLD: float = Field(
         0.85,
-        description="Default cosine similarity threshold to filter candidates before re-ranking.",
+        description=(
+            "Default cosine similarity threshold to filter "
+            "candidates before re-ranking."
+        ),
     )
     # Example: map 'DISEASE' from a NER tool to OMOP 'Condition' domain
     NER_TO_OMOP_DOMAIN_MAPPING: Dict[str, str] = Field(
@@ -64,7 +73,10 @@ class Settings(BaseSettings):
 
     # --- Indexing Configuration ---
     INDEXING_BATCH_SIZE: int = Field(
-        1024, description="The batch size for generating and inserting embeddings during indexing."
+        1024,
+        description=(
+            "The batch size for generating and inserting embeddings during indexing."
+        ),
     )
 
 

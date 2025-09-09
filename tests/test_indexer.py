@@ -1,25 +1,24 @@
 """
 Tests for the offline indexer module.
 """
-from unittest.mock import call, patch
+from unittest.mock import call
 
 import pandas as pd
 import pytest
-
-from pyNameEntityNormalization.indexer.builder import IndexBuilder
+from py_name_entity_normalization.indexer.builder import IndexBuilder
 
 
 @pytest.fixture
 def mock_dal_indexer(mocker):
     """Mocks the DAL functions used by the indexer."""
     # We patch the dal module *within the indexer's namespace*
-    return mocker.patch("pyNameEntityNormalization.indexer.builder.dal")
+    return mocker.patch("py_name_entity_normalization.indexer.builder.dal")
 
 
 @pytest.fixture
 def mock_engine_indexer(mocker):
     """Mocks the SQLAlchemy engine used by the indexer."""
-    return mocker.patch("pyNameEntityNormalization.indexer.builder.engine")
+    return mocker.patch("py_name_entity_normalization.indexer.builder.engine")
 
 
 def test_index_builder_init(test_settings, mock_embedder, mocker):
@@ -28,7 +27,7 @@ def test_index_builder_init(test_settings, mock_embedder, mocker):
     """
     # Mock the factory to return our mock embedder
     mocker.patch(
-        "pyNameEntityNormalization.indexer.builder.get_embedder",
+        "py_name_entity_normalization.indexer.builder.get_embedder",
         return_value=mock_embedder,
     )
     builder = IndexBuilder(test_settings)
@@ -42,7 +41,7 @@ def test_index_builder_init_dimension_mismatch(test_settings, mock_embedder, moc
     """
     mock_embedder.get_dimension.return_value = 999  # Different from settings
     mocker.patch(
-        "pyNameEntityNormalization.indexer.builder.get_embedder",
+        "py_name_entity_normalization.indexer.builder.get_embedder",
         return_value=mock_embedder,
     )
 
@@ -65,7 +64,7 @@ def test_build_index_from_csv(
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="data" * 100))
     mocker.patch(
-        "pyNameEntityNormalization.indexer.builder.get_embedder",
+        "py_name_entity_normalization.indexer.builder.get_embedder",
         return_value=mock_embedder,
     )
     builder = IndexBuilder(test_settings)
@@ -92,12 +91,14 @@ def test_build_index_from_csv(
     )
 
     # 4. Check index creation
-    mock_db_session.execute.assert_has_calls([
-        call(mocker.ANY), # CREATE EXTENSION
-        call(mocker.ANY)  # CREATE INDEX
-    ])
+    mock_db_session.execute.assert_has_calls(
+        [call(mocker.ANY), call(mocker.ANY)]  # CREATE EXTENSION  # CREATE INDEX
+    )
     sql_call = str(mock_db_session.execute.call_args_list[1].args[0])
-    assert "CREATE INDEX ON omop_concept_index USING hnsw (embedding vector_cosine_ops)" in sql_call
+    assert (
+        "CREATE INDEX ON omop_concept_index USING hnsw (embedding vector_cosine_ops)"
+        in sql_call
+    )
     mock_db_session.commit.assert_called()
 
 
@@ -116,7 +117,7 @@ def test_build_index_from_csv_with_force(
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="data" * 100))
     mocker.patch(
-        "pyNameEntityNormalization.indexer.builder.get_embedder",
+        "py_name_entity_normalization.indexer.builder.get_embedder",
         return_value=mock_embedder,
     )
     builder = IndexBuilder(test_settings)
@@ -143,17 +144,19 @@ def test_build_index_from_csv_empty_chunk(
     """
     # Arrange
     # This chunk will be empty after dropping NA and filtering by length
-    bad_df = pd.DataFrame({
-        "concept_id": [1, 2],
-        "concept_name": [None, "a"],
-        "domain_id": ["Drug", "Drug"],
-        "vocabulary_id": ["RxNorm", "RxNorm"],
-        "concept_class_id": ["Ingredient", "Ingredient"],
-    })
+    bad_df = pd.DataFrame(
+        {
+            "concept_id": [1, 2],
+            "concept_name": [None, "a"],
+            "domain_id": ["Drug", "Drug"],
+            "vocabulary_id": ["RxNorm", "RxNorm"],
+            "concept_class_id": ["Ingredient", "Ingredient"],
+        }
+    )
     mocker.patch("pandas.read_csv", return_value=[bad_df])
     mocker.patch("builtins.open", mocker.mock_open(read_data="data" * 100))
     mocker.patch(
-        "pyNameEntityNormalization.indexer.builder.get_embedder",
+        "py_name_entity_normalization.indexer.builder.get_embedder",
         return_value=mock_embedder,
     )
     builder = IndexBuilder(test_settings)

@@ -28,12 +28,19 @@ class Candidate(BaseModel):
 
     concept_id: int = Field(..., description="The OMOP Concept ID.")
     concept_name: str = Field(..., description="The name of the concept.")
-    vocabulary_id: str = Field(..., description="The source vocabulary (e.g., 'RxNorm').")
-    concept_class_id: str = Field(..., description="The concept class (e.g., 'Ingredient').")
+    vocabulary_id: str = Field(
+        ..., description="The source vocabulary (e.g., 'RxNorm')."
+    )
+    concept_class_id: str = Field(
+        ..., description="The concept class (e.g., 'Ingredient')."
+    )
     domain_id: str = Field(..., description="The OMOP domain (e.g., 'Drug').")
     distance: float = Field(
         ...,
-        description="The distance metric (e.g., cosine distance) from the query vector. Lower is better.",
+        description=(
+            "The distance metric (e.g., cosine distance) from the query vector. "
+            "Lower is better."
+        ),
     )
 
     class Config:

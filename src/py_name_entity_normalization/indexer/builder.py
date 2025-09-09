@@ -36,7 +36,8 @@ class IndexBuilder:
         model_dim = self.embedder.get_dimension()
         if self.settings.EMBEDDING_MODEL_DIMENSION != model_dim:
             raise ValueError(
-                f"Configuration error: EMBEDDING_MODEL_DIMENSION ({self.settings.EMBEDDING_MODEL_DIMENSION}) "
+                "Configuration error: EMBEDDING_MODEL_DIMENSION "
+                f"({self.settings.EMBEDDING_MODEL_DIMENSION}) "
                 f"does not match the actual model dimension ({model_dim})."
             )
 
@@ -60,7 +61,9 @@ class IndexBuilder:
             force: If True, drops all existing data and schema before building.
         """
         if force:
-            logger.info("Force option enabled. Dropping and recreating database schema...")
+            logger.info(
+                "Force option enabled. Dropping and recreating database schema..."
+            )
             dal.Base.metadata.drop_all(engine)
             dal.create_database_schema(engine)
             logger.info("Schema recreated.")
@@ -71,11 +74,17 @@ class IndexBuilder:
             csv_path,
             chunksize=self.settings.INDEXING_BATCH_SIZE,
             sep="\t",
-            usecols=["concept_id", "concept_name", "domain_id", "vocabulary_id", "concept_class_id"],
-            on_bad_lines="skip", # Some OMOP files can have parsing issues
+            usecols=[
+                "concept_id",
+                "concept_name",
+                "domain_id",
+                "vocabulary_id",
+                "concept_class_id",
+            ],
+            on_bad_lines="skip",  # Some OMOP files can have parsing issues
         )
 
-        total_rows = sum(1 for row in open(csv_path, 'r')) # Get total for tqdm
+        total_rows = sum(1 for row in open(csv_path, "r"))  # Get total for tqdm
         with tqdm(total=total_rows, desc="Indexing Concepts") as pbar:
             for chunk in chunk_iter:
                 chunk.dropna(subset=["concept_name"], inplace=True)
@@ -105,12 +114,14 @@ class IndexBuilder:
         )
         logger.info(f"Metadata stored: {metadata_to_store}")
 
-        logger.info("Creating HNSW index for fast vector search. This may take a while...")
+        logger.info("Creating HNSW index for fast vector search...")
+        logger.info("This may take a while...")
         # Create the HNSW index using the appropriate distance function
         session.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
         session.execute(
             text(
-                "CREATE INDEX ON omop_concept_index USING hnsw (embedding vector_cosine_ops);"
+                "CREATE INDEX ON omop_concept_index "
+                "USING hnsw (embedding vector_cosine_ops);"
             )
         )
         session.commit()

@@ -2,9 +2,10 @@
 The main NormalizationEngine orchestrating the entire pipeline.
 """
 import logging
-from typing import Optional
+from typing import List, Optional
 
-from ..config import Settings, settings as default_settings
+from ..config import Settings
+from ..config import settings as default_settings
 from ..core.interfaces import IEmbedder, IRanker
 from ..core.schemas import NormalizationInput, NormalizationOutput, RankedCandidate
 from ..database import dal
@@ -65,16 +66,19 @@ class NormalizationEngine:
         if not indexed_model_name:
             logger.warning(
                 "Index metadata not found or model name is missing. "
-                "Skipping model consistency check. This is expected if the index hasn't been built yet."
+                "Skipping model consistency check. "
+                "This is expected if the index hasn't been built yet."
             )
             return
 
         current_model_name = self.embedder.get_model_name()
         if current_model_name != indexed_model_name:
-            raise ValueError(
-                f"Model mismatch! The current model ('{current_model_name}') "
-                f"is different from the model used to build the index ('{indexed_model_name}')."
+            error_message = (
+                "Model mismatch! The current model "
+                f"('{current_model_name}') is different from the model "
+                f"used to build the index ('{indexed_model_name}')."
             )
+            raise ValueError(error_message)
         logger.info("Model consistency check passed.")
 
     def normalize(
@@ -100,7 +104,9 @@ class NormalizationEngine:
         """
         # Set defaults from settings if not provided
         k = top_k or self.settings.DEFAULT_TOP_K
-        conf_threshold = threshold or self.settings.DEFAULT_CONFIDENCE_THRESHOLD
+        conf_threshold = (
+            threshold or self.settings.DEFAULT_CONFIDENCE_THRESHOLD
+        )
 
         # 1. Preprocess text
         processed_text = clean_text(input_data.text)
@@ -140,6 +146,7 @@ try:
 except (ValueError, Exception) as e:
     logger.error(f"Failed to initialize the default NormalizationEngine: {e}")
     logger.error(
-        "This may be expected if the database is not yet available or indexed."
+        "This may be expected if the database is not yet available or "
+        "indexed."
     )
     engine = None

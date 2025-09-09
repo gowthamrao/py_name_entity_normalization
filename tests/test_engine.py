@@ -1,35 +1,31 @@
 """
 Tests for the NormalizationEngine.
 """
-from unittest.mock import MagicMock, patch
 
 import pytest
-
-from pyNameEntityNormalization.core.engine import NormalizationEngine
-from pyNameEntityNormalization.core.schemas import NormalizationInput
+from py_name_entity_normalization.core.engine import NormalizationEngine
+from py_name_entity_normalization.core.schemas import NormalizationInput
 
 
 @pytest.fixture
 def mock_dal(mocker):
     """Mocks the data access layer."""
-    return mocker.patch("pyNameEntityNormalization.core.engine.dal")
+    return mocker.patch("py_name_entity_normalization.core.engine.dal")
 
 
 @pytest.fixture
 def mock_factories(mocker, mock_embedder, mock_ranker):
     """Mocks the embedder and ranker factories."""
     mocker.patch(
-        "pyNameEntityNormalization.core.engine.get_embedder",
+        "py_name_entity_normalization.core.engine.get_embedder",
         return_value=mock_embedder,
     )
     mocker.patch(
-        "pyNameEntityNormalization.core.engine.get_ranker", return_value=mock_ranker
+        "py_name_entity_normalization.core.engine.get_ranker", return_value=mock_ranker
     )
 
 
-def test_engine_init_success(
-    test_settings, mock_dal, mock_factories, mock_db_session
-):
+def test_engine_init_success(test_settings, mock_dal, mock_factories, mock_db_session):
     """
     Tests successful initialization of the NormalizationEngine.
     """
@@ -127,8 +123,8 @@ def test_normalize_thresholding(
     assert engine.ranker.rank.call_count == 1
     call_args, _ = engine.ranker.rank.call_args
     assert len(call_args[1]) == 2
-    assert call_args[1][0].concept_id == 1 # distance 0.1 -> sim 0.9
-    assert call_args[1][1].concept_id == 2 # distance 0.05 -> sim 0.95
+    assert call_args[1][0].concept_id == 1  # distance 0.1 -> sim 0.9
+    assert call_args[1][1].concept_id == 2  # distance 0.05 -> sim 0.95
 
 
 def test_normalize_no_candidates_found(
@@ -139,14 +135,14 @@ def test_normalize_no_candidates_found(
     """
     # Arrange
     mock_dal.get_index_metadata.return_value = {}
-    mock_dal.find_nearest_neighbors.return_value = [] # No candidates
+    mock_dal.find_nearest_neighbors.return_value = []  # No candidates
     engine = NormalizationEngine(settings=test_settings)
 
     # Act
     result = engine.normalize(NormalizationInput(text="something unknown"))
 
     # Assert
-    assert engine.ranker.rank.call_count == 0 # Ranker should not be called
+    assert engine.ranker.rank.call_count == 0  # Ranker should not be called
     assert len(result.candidates) == 0
 
 
