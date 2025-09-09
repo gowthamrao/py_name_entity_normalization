@@ -5,9 +5,8 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
-
-from pyNameEntityNormalization.embedders.factory import get_embedder
-from pyNameEntityNormalization.embedders.sentence_transformer import (
+from py_name_entity_normalization.embedders.factory import get_embedder
+from py_name_entity_normalization.embedders.sentence_transformer import (
     SentenceTransformerEmbedder,
 )
 
@@ -26,14 +25,12 @@ def mock_sentence_transformer(mocker, test_settings):
     )
     # Patch where the class is imported and used, not its source.
     return mocker.patch(
-        "pyNameEntityNormalization.embedders.sentence_transformer.SentenceTransformer",
+        "py_name_entity_normalization.embedders.sentence_transformer.SentenceTransformer",
         return_value=mock_model,
     )
 
 
-def test_sentence_transformer_embedder_init(
-    mock_sentence_transformer, test_settings
-):
+def test_sentence_transformer_embedder_init(mock_sentence_transformer, test_settings):
     """
     Tests the initialization of the SentenceTransformerEmbedder.
     """
@@ -58,7 +55,9 @@ def test_sentence_transformer_embedder_init_device_auto(
     """
     # Test with CUDA available
     mocker.patch("torch.cuda.is_available", return_value=True)
-    embedder = SentenceTransformerEmbedder(model_name=test_settings.EMBEDDING_MODEL_NAME)
+    embedder = SentenceTransformerEmbedder(
+        model_name=test_settings.EMBEDDING_MODEL_NAME
+    )
     assert embedder.device == "cuda"
     mock_sentence_transformer.assert_called_with(
         test_settings.EMBEDDING_MODEL_NAME, device="cuda"
@@ -66,21 +65,23 @@ def test_sentence_transformer_embedder_init_device_auto(
 
     # Test with CUDA not available
     mocker.patch("torch.cuda.is_available", return_value=False)
-    embedder = SentenceTransformerEmbedder(model_name=test_settings.EMBEDDING_MODEL_NAME)
+    embedder = SentenceTransformerEmbedder(
+        model_name=test_settings.EMBEDDING_MODEL_NAME
+    )
     assert embedder.device == "cpu"
     mock_sentence_transformer.assert_called_with(
         test_settings.EMBEDDING_MODEL_NAME, device="cpu"
     )
 
 
-def test_sentence_transformer_embedder_encode(
-    mock_sentence_transformer, test_settings
-):
+def test_sentence_transformer_embedder_encode(mock_sentence_transformer, test_settings):
     """
     Tests the encode method.
     """
     # Arrange
-    embedder = SentenceTransformerEmbedder(model_name=test_settings.EMBEDDING_MODEL_NAME)
+    embedder = SentenceTransformerEmbedder(
+        model_name=test_settings.EMBEDDING_MODEL_NAME
+    )
     text = "some text"
 
     # Act
@@ -100,7 +101,9 @@ def test_sentence_transformer_embedder_encode_batch(
     Tests the encode_batch method.
     """
     # Arrange
-    embedder = SentenceTransformerEmbedder(model_name=test_settings.EMBEDDING_MODEL_NAME)
+    embedder = SentenceTransformerEmbedder(
+        model_name=test_settings.EMBEDDING_MODEL_NAME
+    )
     texts = ["text 1", "text 2"]
 
     # Act
@@ -124,7 +127,9 @@ def test_sentence_transformer_embedder_getters(
     Tests the get_model_name and get_dimension methods.
     """
     # Arrange
-    embedder = SentenceTransformerEmbedder(model_name=test_settings.EMBEDDING_MODEL_NAME)
+    embedder = SentenceTransformerEmbedder(
+        model_name=test_settings.EMBEDDING_MODEL_NAME
+    )
 
     # Act & Assert
     assert embedder.get_model_name() == test_settings.EMBEDDING_MODEL_NAME
@@ -138,7 +143,7 @@ def test_get_embedder_factory(test_settings):
     """
     # Arrange - Patch the embedder class to avoid real model loading
     with patch(
-        "pyNameEntityNormalization.embedders.factory.SentenceTransformerEmbedder"
+        "py_name_entity_normalization.embedders.factory.SentenceTransformerEmbedder"
     ) as mock_embedder_class:
         # Act
         embedder = get_embedder(test_settings)

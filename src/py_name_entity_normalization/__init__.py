@@ -1,5 +1,5 @@
 """
-pyNameEntityNormalization
+py_name_entity_normalization
 
 A production-ready Python package for Named Entity Normalization (NEN)
 using a hybrid generate-and-rank approach with pgvector and sentence-transformers.

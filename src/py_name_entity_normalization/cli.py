@@ -1,5 +1,5 @@
 """
-Command-Line Interface (CLI) for the pyNameEntityNormalization package.
+Command-Line Interface (CLI) for the py_name_entity_normalization package.
 
 This module provides commands for managing the normalization index, such as
 building it from source data and verifying its status. It uses the Typer
@@ -7,15 +7,15 @@ library to create a user-friendly and well-documented CLI.
 """
 import logging
 from pathlib import Path
-from typing_extensions import Annotated
 
 import typer
 from rich.console import Console
+from typing_extensions import Annotated
 
 from .config import Settings
+from .core.engine import NormalizationEngine
 from .database.connection import get_session
 from .indexer.builder import IndexBuilder
-from .core.engine import NormalizationEngine
 
 # Initialize Typer app and Rich console for nice output
 app = typer.Typer(
@@ -59,7 +59,7 @@ def build_index(
         console.print("✅ Index has been built and is ready for use.")
     except Exception as e:
         console.print(f"[bold red]Error during index build:[/bold red] {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
@@ -73,8 +73,10 @@ def verify_index():
         # Initializing the engine performs the consistency check
         engine = NormalizationEngine(settings)
         console.print("✅ NormalizationEngine initialized successfully.")
-        console.print(f"✅ Model consistency check passed.")
-        console.print(f"   [dim]Current Model:[/dim] [bold]{engine.embedder.get_model_name()}[/bold]")
+        console.print("✅ Model consistency check passed.")
+        console.print(
+            f"   [dim]Current Model:[/dim] [bold]{engine.embedder.get_model_name()}[/bold]"
+        )
 
         # Further verification can be added here, e.g., count items
         # with get_session() as session:
@@ -84,7 +86,7 @@ def verify_index():
         console.rule("[bold blue]Verification Complete[/bold blue]")
     except Exception as e:
         console.print(f"[bold red]Error during index verification:[/bold red] {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 if __name__ == "__main__":

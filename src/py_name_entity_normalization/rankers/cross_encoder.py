@@ -34,14 +34,13 @@ class CrossEncoderRanker(IRanker):
         else:
             self.device = device
 
-        print(f"Loading cross-encoder model '{self._model_name}' onto device '{self.device}'...")
+        print(f"Loading cross-encoder model '{self._model_name}'...")
+        print(f"Using device: '{self.device}'")
         # max_length can be important for performance
         self.model = CrossEncoder(self._model_name, max_length=512, device=self.device)
         print("Cross-encoder loaded successfully.")
 
-    def rank(
-        self, query: str, candidates: List[Candidate]
-    ) -> List[RankedCandidate]:
+    def rank(self, query: str, candidates: List[Candidate]) -> List[RankedCandidate]:
         """
         Re-ranks candidates using the Cross-Encoder model.
 

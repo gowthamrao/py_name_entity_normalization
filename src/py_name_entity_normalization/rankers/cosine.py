@@ -17,9 +17,7 @@ class CosineSimilarityRanker(IRanker):
     for the pipeline. The cosine similarity is calculated as `1 - cosine_distance`.
     """
 
-    def rank(
-        self, query: str, candidates: List[Candidate]
-    ) -> List[RankedCandidate]:
+    def rank(self, query: str, candidates: List[Candidate]) -> List[RankedCandidate]:
         """
         "Re-ranks" candidates by converting their distance to a similarity score.
 
