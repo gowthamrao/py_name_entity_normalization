@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "py-name-entity-normalization"
+name = "py_name_entity_normalization"
 version = "0.1.0"
 description = "A production-ready Python package for Named Entity Normalization (NEN) using a hybrid generate-and-rank approach with pgvector and sentence-transformers."
 authors = ["Gowtham Rao <rao@ohdsi.org>"]
