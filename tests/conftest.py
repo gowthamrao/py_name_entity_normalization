@@ -79,35 +79,31 @@ def mock_ranker() -> MagicMock:
 
 
 @pytest.fixture
-def sample_candidates() -> list[Candidate]:
+def comprehensive_candidates() -> list[Candidate]:
     """
-    Provides a list of sample Candidate objects for testing rankers and engine.
+    Provides a more comprehensive list of sample Candidate objects.
     """
     return [
-        Candidate(
-            concept_id=1,
-            concept_name="Aspirin",
-            vocabulary_id="RxNorm",
-            concept_class_id="Ingredient",
-            domain_id="Drug",
-            distance=0.1,
-        ),
-        Candidate(
-            concept_id=2,
-            concept_name="Aspirin 81mg",
-            vocabulary_id="RxNorm",
-            concept_class_id="Clinical Drug",
-            domain_id="Drug",
-            distance=0.05,
-        ),
-        Candidate(
-            concept_id=3,
-            concept_name="Tylenol",
-            vocabulary_id="RxNorm",
-            concept_class_id="Brand Name",
-            domain_id="Drug",
-            distance=0.8,
-        ),
+        # Exact match, different cases
+        Candidate(concept_id=1, concept_name="Aspirin", vocabulary_id='RxNorm', concept_class_id='Ingredient', domain_id="Drug", distance=0.01),
+        # Slight variation
+        Candidate(concept_id=2, concept_name="Aspirin 81mg", vocabulary_id='RxNorm', concept_class_id='Clinical Drug', domain_id="Drug", distance=0.05),
+        # Synonym
+        Candidate(concept_id=3, concept_name="Acetylsalicylic Acid", vocabulary_id='RxNorm', concept_class_id='Ingredient', domain_id="Drug", distance=0.1),
+        # Completely different drug
+        Candidate(concept_id=4, concept_name="Ibuprofen", vocabulary_id='RxNorm', concept_class_id='Ingredient', domain_id="Drug", distance=0.7),
+        # Ambiguous name - medical condition
+        Candidate(concept_id=5, concept_name="Cold", vocabulary_id='SNOMED', concept_class_id='Clinical Finding', domain_id="Condition", distance=0.2),
+        # Ambiguous name - drug
+        Candidate(concept_id=6, concept_name="Cold and Flu Relief", vocabulary_id='RxNorm', concept_class_id='Branded Drug', domain_id="Drug", distance=0.25),
+        # Very specific drug name
+        Candidate(concept_id=7, concept_name="Lisinopril 20mg Tablet", vocabulary_id='RxNorm', concept_class_id='Clinical Drug Dose', domain_id="Drug", distance=0.15),
+        # A non-drug concept
+        Candidate(concept_id=8, concept_name="Blood Pressure", vocabulary_id='SNOMED', concept_class_id='Observable Entity', domain_id="Measurement", distance=0.9),
+        # A misspelling
+        Candidate(concept_id=9, concept_name="Asparin", vocabulary_id='RxNorm', concept_class_id='Ingredient', domain_id="Drug", distance=0.12),
+        # Another similar drug
+        Candidate(concept_id=10, concept_name="Aspirin-C", vocabulary_id='RxNorm', concept_class_id='Branded Drug', domain_id="Drug", distance=0.08),
     ]
 
 
