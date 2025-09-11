@@ -5,6 +5,9 @@ Tests for the NormalizationEngine.
 import pytest
 from py_name_entity_normalization.core.engine import NormalizationEngine
 from py_name_entity_normalization.core.schemas import NormalizationInput
+from py_name_entity_normalization.rankers.cosine import CosineSimilarityRanker
+from py_name_entity_normalization.rankers.factory import get_ranker
+from py_name_entity_normalization.rankers.llm import LLMRanker
 
 
 @pytest.fixture
@@ -23,6 +26,33 @@ def mock_factories(mocker, mock_embedder, mock_ranker):
     mocker.patch(
         "py_name_entity_normalization.core.engine.get_ranker", return_value=mock_ranker
     )
+
+
+@pytest.fixture
+def candidates_with_ambiguous_domain():
+    """
+    Returns a list of candidates where 'cold' could be a Drug or a Condition.
+    """
+    from py_name_entity_normalization.core.schemas import Candidate
+
+    return [
+        Candidate(
+            concept_id=100,
+            concept_name="Common Cold",
+            domain_id="Condition",
+            vocabulary_id="SNOMED",
+            concept_class_id="Clinical Finding",
+            distance=0.1,
+        ),
+        Candidate(
+            concept_id=200,
+            concept_name="Cold medicine",
+            domain_id="Drug",
+            vocabulary_id="RxNorm",
+            concept_class_id="Branded Drug",
+            distance=0.2,
+        ),
+    ]
 
 
 def test_engine_init_success(test_settings, mock_dal, mock_factories, mock_db_session):
@@ -74,14 +104,14 @@ def test_engine_init_no_metadata(
 
 
 def test_normalize_happy_path(
-    test_settings, mock_dal, mock_factories, mock_db_session, sample_candidates
+    test_settings, mock_dal, mock_factories, mock_db_session, comprehensive_candidates
 ):
     """
     Tests a full, successful run of the normalize method.
     """
     # Arrange
     mock_dal.get_index_metadata.return_value = {}  # Skip consistency check
-    mock_dal.find_nearest_neighbors.return_value = sample_candidates
+    mock_dal.find_nearest_neighbors.return_value = comprehensive_candidates
     engine = NormalizationEngine(settings=test_settings)
 
     # Act
@@ -89,42 +119,44 @@ def test_normalize_happy_path(
     result = engine.normalize(norm_input)
 
     # Assert
-    # Check that DAL was called correctly
     mock_dal.find_nearest_neighbors.assert_called_once()
-    # Check that ranker was called (via the mock_ranker fixture's side_effect)
     assert engine.ranker.rank.call_count == 1
-    # Check final output
     assert result.input == norm_input
-    # The default threshold of 0.85 filters one candidate (sim=0.2)
-    # So only 2 should be left.
-    assert len(result.candidates) == 2
+    # Default threshold is 0.85, so 1 - distance must be > 0.85
+    # distance must be < 0.15
+    # Candidates with distance > 0.15 are filtered out
+    # 0.7, 0.2, 0.25, 0.9 are filtered
+    assert len(result.candidates) == 6
     assert result.candidates[0].rerank_score == 0.99
 
 
 def test_normalize_thresholding(
-    test_settings, mock_dal, mock_factories, mock_db_session, sample_candidates
+    test_settings, mock_dal, mock_factories, mock_db_session, comprehensive_candidates
 ):
     """
     Tests that the confidence threshold is applied correctly.
     """
     # Arrange
     mock_dal.get_index_metadata.return_value = {}
-    mock_dal.find_nearest_neighbors.return_value = sample_candidates
+    mock_dal.find_nearest_neighbors.return_value = comprehensive_candidates
     engine = NormalizationEngine(settings=test_settings)
 
-    # One candidate is below the 0.85 threshold (1 - 0.8 = 0.2)
-    test_settings.DEFAULT_CONFIDENCE_THRESHOLD = 0.85
+    # distances: 0.01, 0.05, 0.1, 0.7, 0.2, 0.25, 0.15, 0.9, 0.12, 0.08
+    # similarities: 0.99, 0.95, 0.9, 0.3, 0.8, 0.75, 0.85, 0.1, 0.88, 0.92
+    test_settings.DEFAULT_CONFIDENCE_THRESHOLD = 0.91
 
     # Act
     result = engine.normalize(NormalizationInput(text="aspirin"))
 
     # Assert
-    # Check that the ranker was called with only the 2 candidates above the threshold
+    # Ranker is called with candidates with similarity > 0.91
+    # Similarities: 0.99, 0.95, 0.92
     assert engine.ranker.rank.call_count == 1
     call_args, _ = engine.ranker.rank.call_args
-    assert len(call_args[1]) == 2
-    assert call_args[1][0].concept_id == 1  # distance 0.1 -> sim 0.9
-    assert call_args[1][1].concept_id == 2  # distance 0.05 -> sim 0.95
+    assert len(call_args[1]) == 3
+    assert call_args[1][0].concept_id == 1  # sim 0.99
+    assert call_args[1][1].concept_id == 2  # sim 0.95
+    assert call_args[1][2].concept_id == 10 # sim 0.92
 
 
 def test_normalize_no_candidates_found(
@@ -166,3 +198,112 @@ def test_normalize_empty_input_text(
     assert mock_dal.find_nearest_neighbors.call_count == 0
     assert engine.ranker.rank.call_count == 0
     assert len(result.candidates) == 0
+
+
+def test_engine_with_llm_ranker_fails(
+    test_settings,
+    mock_dal,
+    mock_embedder,
+    mock_db_session,
+    comprehensive_candidates,
+    mocker,
+):
+    """
+    Tests that the engine correctly uses the LLMRanker and fails as expected.
+    """
+    # Arrange
+    test_settings.RERANKING_STRATEGY = "llm"
+    mock_dal.get_index_metadata.return_value = {}  # Skip consistency check
+    mock_dal.find_nearest_neighbors.return_value = comprehensive_candidates
+
+    # We need to patch the factory here to return a real LLMRanker
+    mocker.patch(
+        "py_name_entity_normalization.core.engine.get_embedder",
+        return_value=mock_embedder,
+    )
+    mocker.patch(
+        "py_name_entity_normalization.core.engine.get_ranker",
+        side_effect=get_ranker,  # Use the real factory
+    )
+
+    engine = NormalizationEngine(settings=test_settings)
+    assert isinstance(engine.ranker, LLMRanker)
+
+    # Act & Assert
+    with pytest.raises(NotImplementedError, match="LLM-based re-ranking"):
+        engine.normalize(NormalizationInput(text="aspirin"))
+
+
+def test_normalize_with_domain_filter(
+    test_settings,
+    mock_dal,
+    mock_factories,
+    mock_db_session,
+    candidates_with_ambiguous_domain,
+    mocker,
+):
+    """
+    Tests that the domain filter is correctly applied and passed to the DAL.
+    """
+    # Arrange
+    # Mock DAL to return only the 'Condition' candidate when filtered
+    condition_candidate = [candidates_with_ambiguous_domain[0]]
+    mock_dal.get_index_metadata.return_value = {}
+    mock_dal.find_nearest_neighbors.return_value = condition_candidate
+    engine = NormalizationEngine(settings=test_settings)
+
+    # Act
+    norm_input = NormalizationInput(text="cold", domains=["Condition"])
+    result = engine.normalize(norm_input)
+
+    # Assert
+    # Check that find_nearest_neighbors was called with the domain filter
+    mock_dal.find_nearest_neighbors.assert_called_once()
+    call_args, _ = mock_dal.find_nearest_neighbors.call_args
+    assert call_args[3] == ["Condition"]  # domains is the 4th argument
+
+    # Check that the result contains only the condition
+    assert len(result.candidates) == 1
+    assert result.candidates[0].concept_id == 100
+    assert result.candidates[0].domain_id == "Condition"
+
+
+def test_engine_with_cosine_ranker(
+    test_settings,
+    mock_dal,
+    mock_embedder,
+    mock_db_session,
+    comprehensive_candidates,
+    mocker,
+):
+    """
+    Tests that the engine works correctly with the CosineSimilarityRanker.
+    """
+    # Arrange
+    test_settings.RERANKING_STRATEGY = "cosine"
+    test_settings.DEFAULT_CONFIDENCE_THRESHOLD = 0.0  # Ensure all candidates are ranked
+    mock_dal.get_index_metadata.return_value = {}  # Skip consistency check
+    mock_dal.find_nearest_neighbors.return_value = comprehensive_candidates
+
+    mocker.patch(
+        "py_name_entity_normalization.core.engine.get_embedder",
+        return_value=mock_embedder,
+    )
+    mocker.patch(
+        "py_name_entity_normalization.core.engine.get_ranker",
+        side_effect=get_ranker,  # Use the real factory
+    )
+
+    engine = NormalizationEngine(settings=test_settings)
+    assert isinstance(engine.ranker, CosineSimilarityRanker)
+
+    # Act
+    result = engine.normalize(NormalizationInput(text="aspirin"))
+
+    # Assert
+    assert len(result.candidates) == len(comprehensive_candidates)
+    # Check that scores are 1 - distance and sorted
+    assert result.candidates[0].rerank_score == pytest.approx(1.0 - 0.01)
+    assert result.candidates[0].concept_id == 1
+    assert result.candidates[-1].rerank_score == pytest.approx(1.0 - 0.9)
+    assert result.candidates[-1].concept_id == 8
