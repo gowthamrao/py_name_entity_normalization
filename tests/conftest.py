@@ -13,9 +13,12 @@ import pytest
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
 from py_name_entity_normalization.core.schemas import Candidate, RankedCandidate
+from py_name_entity_normalization.database.models import Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_settings() -> Settings:
     """
     Returns a Settings object for testing.
@@ -24,10 +27,38 @@ def test_settings() -> Settings:
     # when the test settings are used to configure a model but the default settings
     # were used when the ORM model was defined.
     return Settings(
+        DATABASE_URL="postgresql+psycopg://user:password@localhost:5432/nen_db_test",
         EMBEDDING_MODEL_NAME="test/dummy-bert",
         CROSS_ENCODER_MODEL_NAME="test/dummy-cross-encoder",
         EMBEDDING_MODEL_DIMENSION=768,
     )
+
+
+@pytest.fixture(scope="session")
+def db_engine(test_settings):
+    """
+    Yields a SQLAlchemy engine for the test database.
+    Creates and drops the database schema.
+    """
+    engine = create_engine(test_settings.DATABASE_URL)
+    Base.metadata.create_all(engine)
+    yield engine
+    Base.metadata.drop_all(engine)
+
+
+@pytest.fixture
+def db_session(db_engine):
+    """
+    Yields a SQLAlchemy session for a single test.
+    Rolls back transactions to ensure test isolation.
+    """
+    connection = db_engine.connect()
+    transaction = connection.begin()
+    session = Session(bind=connection)
+    yield session
+    session.close()
+    transaction.rollback()
+    connection.close()
 
 
 @pytest.fixture
@@ -79,35 +110,31 @@ def mock_ranker() -> MagicMock:
 
 
 @pytest.fixture
-def sample_candidates() -> list[Candidate]:
+def comprehensive_candidates() -> list[Candidate]:
     """
-    Provides a list of sample Candidate objects for testing rankers and engine.
+    Provides a more comprehensive list of sample Candidate objects.
     """
     return [
-        Candidate(
-            concept_id=1,
-            concept_name="Aspirin",
-            vocabulary_id="RxNorm",
-            concept_class_id="Ingredient",
-            domain_id="Drug",
-            distance=0.1,
-        ),
-        Candidate(
-            concept_id=2,
-            concept_name="Aspirin 81mg",
-            vocabulary_id="RxNorm",
-            concept_class_id="Clinical Drug",
-            domain_id="Drug",
-            distance=0.05,
-        ),
-        Candidate(
-            concept_id=3,
-            concept_name="Tylenol",
-            vocabulary_id="RxNorm",
-            concept_class_id="Brand Name",
-            domain_id="Drug",
-            distance=0.8,
-        ),
+        # Exact match, different cases
+        Candidate(concept_id=1, concept_name="Aspirin", vocabulary_id='RxNorm', concept_class_id='Ingredient', domain_id="Drug", distance=0.01),
+        # Slight variation
+        Candidate(concept_id=2, concept_name="Aspirin 81mg", vocabulary_id='RxNorm', concept_class_id='Clinical Drug', domain_id="Drug", distance=0.05),
+        # Synonym
+        Candidate(concept_id=3, concept_name="Acetylsalicylic Acid", vocabulary_id='RxNorm', concept_class_id='Ingredient', domain_id="Drug", distance=0.1),
+        # Completely different drug
+        Candidate(concept_id=4, concept_name="Ibuprofen", vocabulary_id='RxNorm', concept_class_id='Ingredient', domain_id="Drug", distance=0.7),
+        # Ambiguous name - medical condition
+        Candidate(concept_id=5, concept_name="Cold", vocabulary_id='SNOMED', concept_class_id='Clinical Finding', domain_id="Condition", distance=0.2),
+        # Ambiguous name - drug
+        Candidate(concept_id=6, concept_name="Cold and Flu Relief", vocabulary_id='RxNorm', concept_class_id='Branded Drug', domain_id="Drug", distance=0.25),
+        # Very specific drug name
+        Candidate(concept_id=7, concept_name="Lisinopril 20mg Tablet", vocabulary_id='RxNorm', concept_class_id='Clinical Drug Dose', domain_id="Drug", distance=0.15),
+        # A non-drug concept
+        Candidate(concept_id=8, concept_name="Blood Pressure", vocabulary_id='SNOMED', concept_class_id='Observable Entity', domain_id="Measurement", distance=0.9),
+        # A misspelling
+        Candidate(concept_id=9, concept_name="Asparin", vocabulary_id='RxNorm', concept_class_id='Ingredient', domain_id="Drug", distance=0.12),
+        # Another similar drug
+        Candidate(concept_id=10, concept_name="Aspirin-C", vocabulary_id='RxNorm', concept_class_id='Branded Drug', domain_id="Drug", distance=0.08),
     ]
 
 

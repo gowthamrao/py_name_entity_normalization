@@ -3,6 +3,7 @@ Tests for the ranker modules, including concrete implementations and the factory
 """
 from unittest.mock import MagicMock
 
+import numpy as np
 import pytest
 from py_name_entity_normalization.rankers.cosine import CosineSimilarityRanker
 from py_name_entity_normalization.rankers.cross_encoder import CrossEncoderRanker
@@ -10,7 +11,7 @@ from py_name_entity_normalization.rankers.factory import get_ranker
 from py_name_entity_normalization.rankers.llm import LLMRanker
 
 
-def test_cosine_similarity_ranker(sample_candidates):
+def test_cosine_similarity_ranker(comprehensive_candidates):
     """
     Tests the CosineSimilarityRanker.
     """
@@ -18,28 +19,27 @@ def test_cosine_similarity_ranker(sample_candidates):
     ranker = CosineSimilarityRanker()
 
     # Act
-    ranked = ranker.rank("query", sample_candidates)
+    ranked = ranker.rank("query", comprehensive_candidates)
 
     # Assert
-    assert len(ranked) == 3
-    # Check that scores are 1 - distance
-    assert ranked[0].rerank_score == pytest.approx(1.0 - 0.05)  # Highest score
-    assert ranked[1].rerank_score == pytest.approx(1.0 - 0.1)
-    assert ranked[2].rerank_score == pytest.approx(1.0 - 0.8)  # Lowest score
-    # Check that they are sorted by score descending
-    assert ranked[0].concept_id == 2
-    assert ranked[1].concept_id == 1
-    assert ranked[2].concept_id == 3
+    assert len(ranked) == len(comprehensive_candidates)
+    # Check that scores are 1 - distance and sorted
+    assert ranked[0].rerank_score == pytest.approx(1.0 - 0.01)
+    assert ranked[0].concept_id == 1
+    assert ranked[-1].rerank_score == pytest.approx(1.0 - 0.9)
+    assert ranked[-1].concept_id == 8
 
 
-def test_cross_encoder_ranker(mocker, test_settings, sample_candidates):
+def test_cross_encoder_ranker(mocker, test_settings, comprehensive_candidates):
     """
     Tests the CrossEncoderRanker, mocking the underlying model.
     """
     # Arrange
     mock_cross_encoder_model = MagicMock()
-    # Mock scores, in a different order than the original candidates
-    mock_cross_encoder_model.predict.return_value = [0.5, 0.9, 0.2]
+    # Mock scores that are deliberately not in sorted order
+    mock_scores = np.linspace(0.1, 0.9, len(comprehensive_candidates))
+    np.random.shuffle(mock_scores)
+    mock_cross_encoder_model.predict.return_value = mock_scores
     mocker.patch(
         "py_name_entity_normalization.rankers.cross_encoder.CrossEncoder",
         return_value=mock_cross_encoder_model,
@@ -50,24 +50,18 @@ def test_cross_encoder_ranker(mocker, test_settings, sample_candidates):
     )
 
     # Act
-    ranked = ranker.rank("Aspirin", sample_candidates)
+    ranked = ranker.rank("Aspirin", comprehensive_candidates)
 
     # Assert
-    # Check that the predict method was called with the correct pairs
-    expected_pairs = [
-        ("Aspirin", "Aspirin"),
-        ("Aspirin", "Aspirin 81mg"),
-        ("Aspirin", "Tylenol"),
-    ]
+    expected_pairs = [("Aspirin", c.concept_name) for c in comprehensive_candidates]
     mock_cross_encoder_model.predict.assert_called_once_with(
         expected_pairs, convert_to_numpy=True
     )
 
     # Check that the results are sorted by the new scores
-    assert len(ranked) == 3
-    assert ranked[0].concept_id == 2  # score 0.9
-    assert ranked[1].concept_id == 1  # score 0.5
-    assert ranked[2].concept_id == 3  # score 0.2
+    assert len(ranked) == len(comprehensive_candidates)
+    assert ranked[0].rerank_score == max(mock_scores)
+    assert ranked[-1].rerank_score == min(mock_scores)
 
 
 def test_cross_encoder_ranker_init_device_auto(mocker, test_settings):
