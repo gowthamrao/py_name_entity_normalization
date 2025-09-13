@@ -36,7 +36,10 @@ def test_get_index_metadata():
     metadata = dal.get_index_metadata(mock_session)
 
     # Assert
-    assert metadata == {"model_name": {"name": "bert"}, "index_date": {"date": "2023-01-01"}}
+    assert metadata == {
+        "model_name": {"name": "bert"},
+        "index_date": {"date": "2023-01-01"},
+    }
     mock_session.execute.assert_called_once()
 
 
@@ -126,9 +129,7 @@ def test_find_nearest_neighbors_with_domain(mock_select):
     mock_session = MagicMock()
     mock_stmt_limit = MagicMock()
     mock_stmt_where = MagicMock()
-    mock_select.return_value.order_by.return_value.limit.return_value = (
-        mock_stmt_limit
-    )
+    mock_select.return_value.order_by.return_value.limit.return_value = mock_stmt_limit
     mock_stmt_limit.where.return_value = mock_stmt_where
     mock_session.execute.return_value.all.return_value = []
 
