@@ -1,140 +1,114 @@
 """
-Tests for the Data Access Layer (DAL).
+Tests for the Data Access Layer (DAL) that interact with a real database.
 """
-from unittest.mock import MagicMock, patch
-
 import numpy as np
+import pandas as pd
+import pytest
 from py_name_entity_normalization.database import dal
-from py_name_entity_normalization.database.models import IndexMetadata, OMOPIndex
+from py_name_entity_normalization.database.models import OMOPIndex
 
 
-def test_find_nearest_neighbors(mock_db_session, test_settings):
-    """
-    Tests the find_nearest_neighbors function.
-    """
-    # Arrange: Set up the mock session to return dummy data
-    dim = test_settings.EMBEDDING_MODEL_DIMENSION
-    mock_result_row = MagicMock()
-    mock_result_row.OMOPIndex = OMOPIndex(
-        concept_id=1,
-        concept_name="Aspirin",
-        domain_id="Drug",
-        vocabulary_id="RxNorm",
-        concept_class_id="Ingredient",
-        embedding=np.random.rand(dim).tolist(),
-    )
-    mock_result_row.distance = 0.1
-    mock_db_session.execute.return_value.all.return_value = [mock_result_row]
-
-    # Act: Call the function
-    query_vector = np.random.rand(dim).tolist()
-    candidates = dal.find_nearest_neighbors(mock_db_session, query_vector, k=5)
-
-    # Assert: Check that the query was constructed correctly and results are parsed
-    assert mock_db_session.execute.call_count == 1
-    stmt = mock_db_session.execute.call_args[0][0]
-    compiled = stmt.compile()
-    compiled_stmt_str = str(compiled)
-    assert "omop_concept_index" in compiled_stmt_str
-    # Check that the order_by clause uses the cosine distance operator
-    assert "<=>" in compiled_stmt_str
-    assert "LIMIT" in compiled_stmt_str
-    # Check that the limit parameter is correct
-    assert 5 in compiled.params.values()
-
-    assert len(candidates) == 1
-    assert candidates[0].concept_id == 1
-    assert candidates[0].concept_name == "Aspirin"
-    assert candidates[0].distance == 0.1
+@pytest.fixture
+def sample_metadata():
+    """Sample metadata for testing."""
+    return {"embedding_model_name": {"name": "test-model", "dimension": 4}}
 
 
-def test_find_nearest_neighbors_with_domain_filter(mock_db_session, test_settings):
-    """
-    Tests that the domain filter is correctly applied in find_nearest_neighbors.
-    """
-    # Arrange
-    mock_db_session.execute.return_value.all.return_value = []
-
-    # Act
-    query_vector = np.random.rand(test_settings.EMBEDDING_MODEL_DIMENSION).tolist()
-    dal.find_nearest_neighbors(
-        mock_db_session, query_vector, k=10, domains=["Drug", "Condition"]
+@pytest.fixture
+def sample_concepts_df(test_settings):
+    """Sample concepts DataFrame for testing."""
+    dim = 4  # Using a smaller dimension for tests
+    return pd.DataFrame(
+        {
+            "concept_id": [1, 2, 3],
+            "concept_name": ["Aspirin", "Ibuprofen", "Acetaminophen"],
+            "domain_id": ["Drug", "Drug", "Condition"],
+            "vocabulary_id": ["RxNorm", "RxNorm", "SNOMED"],
+            "concept_class_id": ["Ingredient", "Ingredient", "Clinical Finding"],
+            "embedding": [
+                np.array([0.1, 0.2, 0.3, 0.4]),  # Aspirin
+                np.array([0.5, 0.6, 0.7, 0.8]),  # Ibuprofen
+                np.array([0.1, 0.2, 0.9, 1.0]),  # Acetaminophen
+            ],
+        }
     )
 
-    # Assert
-    assert mock_db_session.execute.call_count == 1
-    stmt = mock_db_session.execute.call_args[0][0]
-    assert "omop_concept_index.domain_id" in str(stmt.whereclause)
-    # Check that the parameters are correct without relying on literal binds
-    params = stmt.compile().params
-    assert "domain_id_1" in params
-    assert params["domain_id_1"] == ["Drug", "Condition"]
 
-
-def test_get_index_metadata(mock_db_session):
+def test_upsert_and_get_index_metadata(db_session, sample_metadata):
     """
-    Tests the get_index_metadata function.
+    Tests that metadata can be inserted/updated and then retrieved.
     """
-    # Arrange
-    mock_meta_item = MagicMock()
-    mock_meta_item.key = "model_name"
-    mock_meta_item.value = {"name": "test-model"}
-    mock_db_session.execute.return_value.scalars.return_value.all.return_value = [
-        mock_meta_item
-    ]
-
-    # Act
-    metadata = dal.get_index_metadata(mock_db_session)
-
-    # Assert
-    assert metadata == {"model_name": {"name": "test-model"}}
-    assert mock_db_session.execute.call_count == 1
-
-
-def test_upsert_index_metadata(mock_db_session):
-    """
-    Tests the upsert_index_metadata function.
-    """
-    # Act
+    # Act: Upsert the metadata
     dal.upsert_index_metadata(
-        mock_db_session, key="model", value={"name": "test-model"}
+        db_session,
+        key="embedding_model_name",
+        value=sample_metadata["embedding_model_name"],
     )
 
-    # Assert
-    assert mock_db_session.execute.call_count == 1
-    assert mock_db_session.commit.call_count == 1
-    stmt = mock_db_session.execute.call_args[0][0]
-    assert "index_metadata" in str(stmt)
-    # Check that the statement is an insert with an on_conflict_do_update clause
-    assert stmt.is_insert
-    assert stmt.on_conflict_do_update is not None
+    # Retrieve and assert
+    metadata = dal.get_index_metadata(db_session)
+    assert metadata == sample_metadata
+
+    # Update the value and upsert again
+    updated_value = {"name": "new-model", "dimension": 5}
+    dal.upsert_index_metadata(
+        db_session, key="embedding_model_name", value=updated_value
+    )
+    metadata = dal.get_index_metadata(db_session)
+    assert metadata["embedding_model_name"] == updated_value
 
 
-def test_bulk_insert_omop_concepts(mock_db_session, mock_pandas_read_csv):
+def test_bulk_insert_and_find_nearest_neighbors(db_session, sample_concepts_df):
     """
-    Tests the bulk_insert_omop_concepts function.
+    Tests bulk inserting concepts and finding their nearest neighbors.
     """
-    # Arrange
-    df = mock_pandas_read_csv.return_value[0]
+    # Act: Insert the data
+    dal.bulk_insert_omop_concepts(db_session, sample_concepts_df)
 
-    # Act
-    dal.bulk_insert_omop_concepts(mock_db_session, df)
+    # Check that the data was inserted
+    count = db_session.query(OMOPIndex).count()
+    assert count == 3
 
-    # Assert
-    assert mock_db_session.bulk_insert_mappings.call_count == 1
-    assert mock_db_session.commit.call_count == 1
-    # Check that the mapping and data are correct
-    args, kwargs = mock_db_session.bulk_insert_mappings.call_args
-    assert args[0] == OMOPIndex
-    assert len(args[1]) == len(df)
-    assert args[1][0]["concept_id"] == 1
-    assert args[1][0]["concept_name"] == "Aspirin"
+    # Act: Find neighbors for a vector close to "Aspirin"
+    query_vector = [0.11, 0.22, 0.33, 0.44]
+    candidates = dal.find_nearest_neighbors(db_session, query_vector, k=3)
+
+    # Assert: Results should be ordered by distance
+    assert len(candidates) == 3
+    assert candidates[0].concept_id == 1  # Aspirin is closest
+    assert candidates[1].concept_id == 3  # Acetaminophen is next
+    assert candidates[2].concept_id == 2  # Ibuprofen is farthest
+
+    # Check distances are reasonable (pgvector is exact for small N)
+    assert candidates[0].distance == pytest.approx(0.0, abs=1e-2)
+    assert candidates[0].concept_name == "Aspirin"
+
+
+def test_find_nearest_neighbors_with_domain_filter(db_session, sample_concepts_df):
+    """
+    Tests that the domain filter is correctly applied.
+    """
+    # Arrange: Insert data
+    dal.bulk_insert_omop_concepts(db_session, sample_concepts_df)
+
+    # Act: Search with a domain filter
+    query_vector = [0.1, 0.2, 0.3, 0.4]
+    candidates = dal.find_nearest_neighbors(
+        db_session, query_vector, k=5, domains=["Condition"]
+    )
+
+    # Assert: Only concepts from the 'Condition' domain should be returned
+    assert len(candidates) == 1
+    assert candidates[0].concept_id == 3
+    assert candidates[0].domain_id == "Condition"
 
 
 def test_models_repr():
     """
     Tests the __repr__ methods of the ORM models.
     """
+    from py_name_entity_normalization.database.models import IndexMetadata
+
     # Test IndexMetadata
     metadata = IndexMetadata(key="test_key", value={"some": "value"})
     assert (
@@ -144,18 +118,3 @@ def test_models_repr():
     # Test OMOPIndex
     omop_concept = OMOPIndex(concept_id=123, concept_name="Test Concept")
     assert repr(omop_concept) == "<OMOPIndex(concept_id=123, name='Test Concept')>"
-
-
-@patch("py_name_entity_normalization.database.dal.Base.metadata")
-def test_create_database_schema(mock_metadata):
-    """
-    Tests that create_database_schema calls the underlying SQLAlchemy method.
-    """
-    # Arrange
-    mock_engine = MagicMock()
-
-    # Act
-    dal.create_database_schema(mock_engine)
-
-    # Assert
-    mock_metadata.create_all.assert_called_once_with(mock_engine)
