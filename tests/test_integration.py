@@ -31,8 +31,24 @@ def concept_df():
             "lisinopril 10 mg tablet",  # A different drug
         ],
         "domain_id": ["Drug", "Drug", "Drug", "Drug", "Drug", "Drug", "Drug"],
-        "vocabulary_id": ["RxNorm", "RxNorm", "RxNorm", "RxNorm", "RxNorm", "RxNorm", "RxNorm"],
-        "concept_class_id": ["Clinical Drug", "Clinical Drug", "Clinical Drug", "Ingredient", "Clinical Drug", "Branded Drug", "Clinical Drug"],
+        "vocabulary_id": [
+            "RxNorm",
+            "RxNorm",
+            "RxNorm",
+            "RxNorm",
+            "RxNorm",
+            "RxNorm",
+            "RxNorm",
+        ],
+        "concept_class_id": [
+            "Clinical Drug",
+            "Clinical Drug",
+            "Clinical Drug",
+            "Ingredient",
+            "Clinical Drug",
+            "Branded Drug",
+            "Clinical Drug",
+        ],
         "standard_concept": ["S", "S", "S", "S", "S", "S", "S"],
         "concept_code": ["1", "2", "3", "4", "5", "6", "7"],
         "invalid_reason": [None, None, None, None, None, None, None],
@@ -40,9 +56,7 @@ def concept_df():
     return pd.DataFrame(data)
 
 
-def test_normalization_engine_integration(
-    db_session, test_settings, concept_df
-):
+def test_normalization_engine_integration(db_session, test_settings, concept_df):
     """
     Tests the full end-to-end normalization pipeline.
 
@@ -91,4 +105,4 @@ def test_normalization_engine_integration(
 
     # Check the order - the next best match should be the close variation
     second_candidate = result.candidates[1]
-    assert second_candidate.concept_id == 103 # 'aspirin 81mg tab'
+    assert second_candidate.concept_id == 103  # 'aspirin 81mg tab'

@@ -104,9 +104,7 @@ class NormalizationEngine:
         """
         # Set defaults from settings if not provided
         k = top_k or self.settings.DEFAULT_TOP_K
-        conf_threshold = (
-            threshold or self.settings.DEFAULT_CONFIDENCE_THRESHOLD
-        )
+        conf_threshold = threshold or self.settings.DEFAULT_CONFIDENCE_THRESHOLD
 
         # 1. Preprocess text
         processed_text = clean_text(input_data.text)
@@ -146,7 +144,6 @@ try:
 except (ValueError, Exception) as e:
     logger.error(f"Failed to initialize the default NormalizationEngine: {e}")
     logger.error(
-        "This may be expected if the database is not yet available or "
-        "indexed."
+        "This may be expected if the database is not yet available or " "indexed."
     )
     engine = None

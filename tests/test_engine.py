@@ -156,7 +156,7 @@ def test_normalize_thresholding(
     assert len(call_args[1]) == 3
     assert call_args[1][0].concept_id == 1  # sim 0.99
     assert call_args[1][1].concept_id == 2  # sim 0.95
-    assert call_args[1][2].concept_id == 10 # sim 0.92
+    assert call_args[1][2].concept_id == 10  # sim 0.92
 
 
 def test_normalize_no_candidates_found(
