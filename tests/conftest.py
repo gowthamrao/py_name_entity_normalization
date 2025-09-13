@@ -13,9 +13,12 @@ import pytest
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
 from py_name_entity_normalization.core.schemas import Candidate, RankedCandidate
+from py_name_entity_normalization.database.models import Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_settings() -> Settings:
     """
     Returns a Settings object for testing.
@@ -24,10 +27,38 @@ def test_settings() -> Settings:
     # when the test settings are used to configure a model but the default settings
     # were used when the ORM model was defined.
     return Settings(
+        DATABASE_URL="postgresql+psycopg://user:password@localhost:5432/nen_db_test",
         EMBEDDING_MODEL_NAME="test/dummy-bert",
         CROSS_ENCODER_MODEL_NAME="test/dummy-cross-encoder",
         EMBEDDING_MODEL_DIMENSION=768,
     )
+
+
+@pytest.fixture(scope="session")
+def db_engine(test_settings):
+    """
+    Yields a SQLAlchemy engine for the test database.
+    Creates and drops the database schema.
+    """
+    engine = create_engine(test_settings.DATABASE_URL)
+    Base.metadata.create_all(engine)
+    yield engine
+    Base.metadata.drop_all(engine)
+
+
+@pytest.fixture
+def db_session(db_engine):
+    """
+    Yields a SQLAlchemy session for a single test.
+    Rolls back transactions to ensure test isolation.
+    """
+    connection = db_engine.connect()
+    transaction = connection.begin()
+    session = Session(bind=connection)
+    yield session
+    session.close()
+    transaction.rollback()
+    connection.close()
 
 
 @pytest.fixture
