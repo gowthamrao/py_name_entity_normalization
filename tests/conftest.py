@@ -18,7 +18,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def test_settings() -> Settings:
     """
     Returns a Settings object for testing.
@@ -34,7 +34,7 @@ def test_settings() -> Settings:
     )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def db_engine(test_settings):
     """
     Yields a SQLAlchemy engine for the test database.
