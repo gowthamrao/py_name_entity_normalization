@@ -1,10 +1,10 @@
-"""
-Data Access Layer (DAL) for database interactions.
+"""Data Access Layer (DAL) for database interactions.
 
 This module provides a set of functions to interact with the database,
 encapsulating all SQLAlchemy query logic. This separation of concerns makes
 the rest of the application independent of the database schema and query details.
 """
+
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
@@ -17,24 +17,24 @@ from .models import Base, IndexMetadata, OMOPIndex
 
 
 def create_database_schema(engine) -> None:
-    """
-    Create all tables in the database based on the ORM models.
+    """Create all tables in the database based on the ORM models.
 
     Args:
         engine: The SQLAlchemy engine instance.
+
     """
     Base.metadata.create_all(engine)
 
 
 def get_index_metadata(session: Session) -> Dict[str, Any]:
-    """
-    Retrieves all metadata key-value pairs from the database.
+    """Retrieve all metadata key-value pairs from the database.
 
     Args:
         session: The SQLAlchemy session.
 
     Returns:
         A dictionary containing all metadata.
+
     """
     stmt = select(IndexMetadata)
     results = session.execute(stmt).scalars().all()
@@ -42,13 +42,13 @@ def get_index_metadata(session: Session) -> Dict[str, Any]:
 
 
 def upsert_index_metadata(session: Session, key: str, value: Dict[str, Any]) -> None:
-    """
-    Inserts or updates a metadata key-value pair.
+    """Insert or update a metadata key-value pair.
 
     Args:
         session: The SQLAlchemy session.
         key: The metadata key.
         value: The metadata value (a dictionary).
+
     """
     stmt = (
         insert(IndexMetadata)
@@ -60,12 +60,12 @@ def upsert_index_metadata(session: Session, key: str, value: Dict[str, Any]) -> 
 
 
 def bulk_insert_omop_concepts(session: Session, concepts_df: pd.DataFrame) -> None:
-    """
-    Performs a bulk insert of OMOP concepts with their embeddings.
+    """Perform a bulk insert of OMOP concepts with their embeddings.
 
     Args:
         session: The SQLAlchemy session.
         concepts_df: A pandas DataFrame with columns matching the OMOPIndex model.
+
     """
     session.bulk_insert_mappings(OMOPIndex, concepts_df.to_dict(orient="records"))
     session.commit()
@@ -77,8 +77,7 @@ def find_nearest_neighbors(
     k: int,
     domains: Optional[List[str]] = None,
 ) -> List[Candidate]:
-    """
-    Finds the top-k nearest neighbors for a given query vector.
+    """Find the top-k nearest neighbors for a given query vector.
 
     This function uses the cosine distance operator (<=>) from pgvector for
     efficient Approximate Nearest Neighbor (ANN) search.
@@ -91,6 +90,7 @@ def find_nearest_neighbors(
 
     Returns:
         A list of Candidate objects, including their distance.
+
     """
     stmt = (
         select(

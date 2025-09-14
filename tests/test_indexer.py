@@ -1,30 +1,28 @@
-"""
-Tests for the offline indexer module.
-"""
+"""Tests for the offline indexer module."""
+
 from unittest.mock import call
 
 import pandas as pd
 import pytest
+
 from py_name_entity_normalization.indexer.builder import IndexBuilder
 
 
 @pytest.fixture
 def mock_dal_indexer(mocker):
-    """Mocks the DAL functions used by the indexer."""
+    """Mock the DAL functions used by the indexer."""
     # We patch the dal module *within the indexer's namespace*
     return mocker.patch("py_name_entity_normalization.indexer.builder.dal")
 
 
 @pytest.fixture
 def mock_engine_indexer(mocker):
-    """Mocks the SQLAlchemy engine used by the indexer."""
+    """Mock the SQLAlchemy engine used by the indexer."""
     return mocker.patch("py_name_entity_normalization.indexer.builder.engine")
 
 
 def test_index_builder_init(test_settings, mock_embedder, mocker):
-    """
-    Tests the initialization of IndexBuilder.
-    """
+    """Test the initialization of IndexBuilder."""
     # Mock the factory to return our mock embedder
     mocker.patch(
         "py_name_entity_normalization.indexer.builder.get_embedder",
@@ -35,10 +33,7 @@ def test_index_builder_init(test_settings, mock_embedder, mocker):
 
 
 def test_index_builder_init_dimension_mismatch(test_settings, mock_embedder, mocker):
-    """
-    Tests that IndexBuilder raises an error if configured dimension and
-    model dimension do not match.
-    """
+    """Test that IndexBuilder raises an error if dimensions mismatch."""
     mock_embedder.get_dimension.return_value = 999  # Different from settings
     mocker.patch(
         "py_name_entity_normalization.indexer.builder.get_embedder",
@@ -58,9 +53,7 @@ def test_build_index_from_csv(
     mock_pandas_read_csv,
     mocker,
 ):
-    """
-    Tests the full build_index_from_csv workflow.
-    """
+    """Test the full build_index_from_csv workflow."""
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="data" * 100))
     mocker.patch(
@@ -111,9 +104,7 @@ def test_build_index_from_csv_with_force(
     mock_pandas_read_csv,
     mocker,
 ):
-    """
-    Tests that the 'force' flag correctly drops and recreates the schema.
-    """
+    """Test that the 'force' flag correctly drops and recreates the schema."""
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="data" * 100))
     mocker.patch(
@@ -139,9 +130,7 @@ def test_build_index_from_csv_empty_chunk(
     mock_db_session,
     mocker,
 ):
-    """
-    Tests that the indexer correctly handles and skips empty chunks.
-    """
+    """Test that the indexer correctly handles and skips empty chunks."""
     # Arrange
     # This chunk will be empty after dropping NA and filtering by length
     bad_df = pd.DataFrame(

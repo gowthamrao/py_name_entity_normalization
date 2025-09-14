@@ -1,8 +1,7 @@
-"""
-Tests for the NormalizationEngine.
-"""
+"""Tests for the NormalizationEngine."""
 
 import pytest
+
 from py_name_entity_normalization.core.engine import NormalizationEngine
 from py_name_entity_normalization.core.schemas import NormalizationInput
 from py_name_entity_normalization.rankers.cosine import CosineSimilarityRanker
@@ -12,13 +11,13 @@ from py_name_entity_normalization.rankers.llm import LLMRanker
 
 @pytest.fixture
 def mock_dal(mocker):
-    """Mocks the data access layer."""
+    """Mock the data access layer."""
     return mocker.patch("py_name_entity_normalization.core.engine.dal")
 
 
 @pytest.fixture
 def mock_factories(mocker, mock_embedder, mock_ranker):
-    """Mocks the embedder and ranker factories."""
+    """Mock the embedder and ranker factories."""
     mocker.patch(
         "py_name_entity_normalization.core.engine.get_embedder",
         return_value=mock_embedder,
@@ -30,9 +29,7 @@ def mock_factories(mocker, mock_embedder, mock_ranker):
 
 @pytest.fixture
 def candidates_with_ambiguous_domain():
-    """
-    Returns a list of candidates where 'cold' could be a Drug or a Condition.
-    """
+    """Return a list of candidates where 'cold' could be a Drug or a Condition."""
     from py_name_entity_normalization.core.schemas import Candidate
 
     return [
@@ -56,9 +53,7 @@ def candidates_with_ambiguous_domain():
 
 
 def test_engine_init_success(test_settings, mock_dal, mock_factories, mock_db_session):
-    """
-    Tests successful initialization of the NormalizationEngine.
-    """
+    """Test successful initialization of the NormalizationEngine."""
     # Arrange: Metadata matches the mock embedder's model name
     mock_dal.get_index_metadata.return_value = {
         "embedding_model_name": {"name": "test/dummy-bert"}
@@ -74,9 +69,7 @@ def test_engine_init_success(test_settings, mock_dal, mock_factories, mock_db_se
 def test_engine_init_model_mismatch(
     test_settings, mock_dal, mock_factories, mock_db_session
 ):
-    """
-    Tests that initialization fails if the model name mismatches.
-    """
+    """Test that initialization fails if the model name mismatches."""
     # Arrange: Metadata has a different model name
     mock_dal.get_index_metadata.return_value = {
         "embedding_model_name": {"name": "a-different-model"}
@@ -90,9 +83,7 @@ def test_engine_init_model_mismatch(
 def test_engine_init_no_metadata(
     test_settings, mock_dal, mock_factories, mock_db_session
 ):
-    """
-    Tests that initialization succeeds if no index metadata is found.
-    """
+    """Test that initialization succeeds if no index metadata is found."""
     # Arrange: DAL returns empty metadata
     mock_dal.get_index_metadata.return_value = {}
 
@@ -106,9 +97,7 @@ def test_engine_init_no_metadata(
 def test_normalize_happy_path(
     test_settings, mock_dal, mock_factories, mock_db_session, comprehensive_candidates
 ):
-    """
-    Tests a full, successful run of the normalize method.
-    """
+    """Test a full, successful run of the normalize method."""
     # Arrange
     mock_dal.get_index_metadata.return_value = {}  # Skip consistency check
     mock_dal.find_nearest_neighbors.return_value = comprehensive_candidates
@@ -133,9 +122,7 @@ def test_normalize_happy_path(
 def test_normalize_thresholding(
     test_settings, mock_dal, mock_factories, mock_db_session, comprehensive_candidates
 ):
-    """
-    Tests that the confidence threshold is applied correctly.
-    """
+    """Test that the confidence threshold is applied correctly."""
     # Arrange
     mock_dal.get_index_metadata.return_value = {}
     mock_dal.find_nearest_neighbors.return_value = comprehensive_candidates
@@ -146,7 +133,7 @@ def test_normalize_thresholding(
     test_settings.DEFAULT_CONFIDENCE_THRESHOLD = 0.91
 
     # Act
-    result = engine.normalize(NormalizationInput(text="aspirin"))
+    _ = engine.normalize(NormalizationInput(text="aspirin"))
 
     # Assert
     # Ranker is called with candidates with similarity > 0.91
@@ -162,9 +149,7 @@ def test_normalize_thresholding(
 def test_normalize_no_candidates_found(
     test_settings, mock_dal, mock_factories, mock_db_session
 ):
-    """
-    Tests the case where the initial database search returns no candidates.
-    """
+    """Test the case where the initial database search returns no candidates."""
     # Arrange
     mock_dal.get_index_metadata.return_value = {}
     mock_dal.find_nearest_neighbors.return_value = []  # No candidates
@@ -182,10 +167,7 @@ def test_normalize_no_candidates_found(
 def test_normalize_empty_input_text(
     test_settings, mock_dal, mock_factories, mock_db_session, text_input
 ):
-    """
-    Tests that if the input text is empty or becomes empty after cleaning,
-    the pipeline returns an empty list of candidates.
-    """
+    """Test that empty or cleaned-to-empty input returns an empty list."""
     # Arrange
     mock_dal.get_index_metadata.return_value = {}
     engine = NormalizationEngine(settings=test_settings)
@@ -208,9 +190,7 @@ def test_engine_with_llm_ranker_fails(
     comprehensive_candidates,
     mocker,
 ):
-    """
-    Tests that the engine correctly uses the LLMRanker and fails as expected.
-    """
+    """Test that the engine correctly uses the LLMRanker and fails as expected."""
     # Arrange
     test_settings.RERANKING_STRATEGY = "llm"
     mock_dal.get_index_metadata.return_value = {}  # Skip consistency check
@@ -242,9 +222,7 @@ def test_normalize_with_domain_filter(
     candidates_with_ambiguous_domain,
     mocker,
 ):
-    """
-    Tests that the domain filter is correctly applied and passed to the DAL.
-    """
+    """Test that the domain filter is correctly applied and passed to the DAL."""
     # Arrange
     # Mock DAL to return only the 'Condition' candidate when filtered
     condition_candidate = [candidates_with_ambiguous_domain[0]]
@@ -276,9 +254,7 @@ def test_engine_with_cosine_ranker(
     comprehensive_candidates,
     mocker,
 ):
-    """
-    Tests that the engine works correctly with the CosineSimilarityRanker.
-    """
+    """Test that the engine works correctly with the CosineSimilarityRanker."""
     # Arrange
     test_settings.RERANKING_STRATEGY = "cosine"
     test_settings.DEFAULT_CONFIDENCE_THRESHOLD = 0.0  # Ensure all candidates are ranked

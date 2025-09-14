@@ -1,6 +1,5 @@
-"""
-Contains the logic for building the vector index from source data.
-"""
+"""Contains the logic for building the vector index from source data."""
+
 import logging
 
 import pandas as pd
@@ -19,16 +18,14 @@ logger = logging.getLogger(__name__)
 
 
 class IndexBuilder:
-    """
-    Handles the creation of the database index from OMOP concept data.
-    """
+    """Handles the creation of the database index from OMOP concept data."""
 
     def __init__(self, settings: Settings):
-        """
-        Initializes the IndexBuilder.
+        """Initialize the IndexBuilder.
 
         Args:
             settings: The application settings object.
+
         """
         self.settings = settings
         self.embedder: IEmbedder = get_embedder(self.settings)
@@ -44,8 +41,7 @@ class IndexBuilder:
     def build_index_from_csv(
         self, csv_path: str, session: Session, force: bool = False
     ) -> None:
-        """
-        Builds the entire index from a CSV file of OMOP concepts.
+        """Build the entire index from a CSV file of OMOP concepts.
 
         The process includes:
         1. Optionally dropping and recreating the database schema.
@@ -59,6 +55,7 @@ class IndexBuilder:
             csv_path: The file path to the OMOP CONCEPT.csv file.
             session: The SQLAlchemy session.
             force: If True, drops all existing data and schema before building.
+
         """
         if force:
             logger.info(

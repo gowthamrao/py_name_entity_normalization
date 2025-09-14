@@ -1,9 +1,9 @@
-"""
-Tests for the Data Access Layer (DAL) that interact with a real database.
-"""
+"""Tests for the Data Access Layer (DAL) that interact with a real database."""
+
 import numpy as np
 import pandas as pd
 import pytest
+
 from py_name_entity_normalization.database import dal
 from py_name_entity_normalization.database.models import OMOPIndex
 
@@ -17,7 +17,6 @@ def sample_metadata():
 @pytest.fixture
 def sample_concepts_df(test_settings):
     """Sample concepts DataFrame for testing."""
-    dim = 4  # Using a smaller dimension for tests
     return pd.DataFrame(
         {
             "concept_id": [1, 2, 3],
@@ -35,9 +34,7 @@ def sample_concepts_df(test_settings):
 
 
 def test_upsert_and_get_index_metadata(db_session, sample_metadata):
-    """
-    Tests that metadata can be inserted/updated and then retrieved.
-    """
+    """Tests that metadata can be inserted/updated and then retrieved."""
     # Act: Upsert the metadata
     dal.upsert_index_metadata(
         db_session,
@@ -59,9 +56,7 @@ def test_upsert_and_get_index_metadata(db_session, sample_metadata):
 
 
 def test_bulk_insert_and_find_nearest_neighbors(db_session, sample_concepts_df):
-    """
-    Tests bulk inserting concepts and finding their nearest neighbors.
-    """
+    """Tests bulk inserting concepts and finding their nearest neighbors."""
     # Act: Insert the data
     dal.bulk_insert_omop_concepts(db_session, sample_concepts_df)
 
@@ -85,9 +80,7 @@ def test_bulk_insert_and_find_nearest_neighbors(db_session, sample_concepts_df):
 
 
 def test_find_nearest_neighbors_with_domain_filter(db_session, sample_concepts_df):
-    """
-    Tests that the domain filter is correctly applied.
-    """
+    """Tests that the domain filter is correctly applied."""
     # Arrange: Insert data
     dal.bulk_insert_omop_concepts(db_session, sample_concepts_df)
 
@@ -104,9 +97,7 @@ def test_find_nearest_neighbors_with_domain_filter(db_session, sample_concepts_d
 
 
 def test_models_repr():
-    """
-    Tests the __repr__ methods of the ORM models.
-    """
+    """Tests the __repr__ methods of the ORM models."""
     from py_name_entity_normalization.database.models import IndexMetadata
 
     # Test IndexMetadata
