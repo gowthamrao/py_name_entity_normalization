@@ -1,11 +1,11 @@
-"""
-Configuration management for the application.
+"""Configuration management for the application.
 
 This module uses pydantic-settings to load configuration from environment
 variables, providing a single, type-safe source of truth for all settings.
 This approach makes the application easily configurable in different
 environments (development, testing, production).
 """
+
 from typing import Dict
 
 from pydantic import Field
@@ -13,9 +13,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """
-    Application settings loaded from environment variables.
-    """
+    """Application settings loaded from environment variables."""
 
     # Pydantic V2 model_config, replaces Config class
     model_config = SettingsConfigDict(

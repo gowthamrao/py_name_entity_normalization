@@ -1,14 +1,12 @@
-"""
-Tests for the abstract base classes in core.interfaces.
-"""
+"""Tests for the abstract base classes in core.interfaces."""
+
 import pytest
+
 from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
 
 
 def test_iembedder_interfaces_raise_not_implemented():
-    """
-    Tests that calling the abstract methods of IEmbedder raises NotImplementedError.
-    """
+    """Test that calling IEmbedder abstract methods raises NotImplementedError."""
     # Temporarily make the class concrete for instantiation
     # by clearing the abstract methods set.
     IEmbedder.__abstractmethods__ = frozenset()
@@ -25,9 +23,7 @@ def test_iembedder_interfaces_raise_not_implemented():
 
 
 def test_iranker_interfaces_raise_not_implemented():
-    """
-    Tests that calling the abstract methods of IRanker raises NotImplementedError.
-    """
+    """Tests that calling the abstract methods of IRanker raises NotImplementedError."""
     # Temporarily make the class concrete for instantiation
     IRanker.__abstractmethods__ = frozenset()
 

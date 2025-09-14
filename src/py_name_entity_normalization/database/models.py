@@ -1,10 +1,10 @@
-"""
-Defines the SQLAlchemy ORM models for the database.
+"""Defines the SQLAlchemy ORM models for the database.
 
 This module contains the schema for the tables that store the OMOP concept
 embeddings and the index metadata. The schema is defined using SQLAlchemy 2.0
 declarative mapping with full type annotations.
 """
+
 from datetime import datetime
 from typing import List
 
@@ -22,8 +22,7 @@ class Base(DeclarativeBase):
 
 
 class IndexMetadata(Base):
-    """
-    Stores metadata about the generated index.
+    """Stores metadata about the generated index.
 
     This is crucial for runtime checks, especially to ensure that the
     embedding model used by the engine matches the one used to create
@@ -43,13 +42,12 @@ class IndexMetadata(Base):
     )
 
     def __repr__(self) -> str:
+        """Return a string representation of the IndexMetadata object."""
         return f"<IndexMetadata(key='{self.key}', value='{self.value}')>"
 
 
 class OMOPIndex(Base):
-    """
-    ORM model for storing OMOP concepts and their vector embeddings.
-    """
+    """ORM model for storing OMOP concepts and their vector embeddings."""
 
     __tablename__ = "omop_concept_index"
 
@@ -69,4 +67,5 @@ class OMOPIndex(Base):
     )
 
     def __repr__(self) -> str:
+        """Return a string representation of the OMOPIndex object."""
         return f"<OMOPIndex(concept_id={self.concept_id}, name='{self.concept_name}')>"

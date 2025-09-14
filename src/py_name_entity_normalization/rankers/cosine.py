@@ -1,6 +1,5 @@
-"""
-Baseline re-ranker based on Cosine Similarity.
-"""
+"""Baseline re-ranker based on Cosine Similarity."""
+
 from typing import List
 
 from ..core.interfaces import IRanker
@@ -8,8 +7,7 @@ from ..core.schemas import Candidate, RankedCandidate
 
 
 class CosineSimilarityRanker(IRanker):
-    """
-    A baseline ranker that uses the cosine distance from the ANN search.
+    """A baseline ranker that uses the cosine distance from the ANN search.
 
     This ranker doesn't perform any new calculations. It simply transforms the
     'distance' metric (where lower is better) from the initial search into a
@@ -18,8 +16,7 @@ class CosineSimilarityRanker(IRanker):
     """
 
     def rank(self, query: str, candidates: List[Candidate]) -> List[RankedCandidate]:
-        """
-        "Re-ranks" candidates by converting their distance to a similarity score.
+        """Re-ranks candidates by converting their distance to a similarity score.
 
         Args:
             query: The original query text (unused in this ranker).
@@ -28,6 +25,7 @@ class CosineSimilarityRanker(IRanker):
         Returns:
             A list of RankedCandidate objects, sorted by the new similarity
             score in descending order.
+
         """
         ranked_candidates = []
         for candidate in candidates:

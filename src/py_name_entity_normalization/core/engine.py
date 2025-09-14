@@ -1,6 +1,5 @@
-"""
-The main NormalizationEngine orchestrating the entire pipeline.
-"""
+"""The main NormalizationEngine orchestrating the entire pipeline."""
+
 import logging
 from typing import List, Optional
 
@@ -20,8 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class NormalizationEngine:
-    """
-    The main orchestrator for the named entity normalization pipeline.
+    """The main orchestrator for the named entity normalization pipeline.
 
     This class integrates all the components: configuration, database access,
     embedding generation, and re-ranking to provide a seamless normalization
@@ -29,8 +27,7 @@ class NormalizationEngine:
     """
 
     def __init__(self, settings: Settings):
-        """
-        Initializes the NormalizationEngine.
+        """Initialize the NormalizationEngine.
 
         This involves setting up the embedder and ranker from factories and
         performing a crucial model consistency check.
@@ -41,6 +38,7 @@ class NormalizationEngine:
         Raises:
             ValueError: If the embedding model used for the index does not
                         match the currently configured model.
+
         """
         self.settings = settings
         logger.info("Initializing NormalizationEngine...")
@@ -55,9 +53,7 @@ class NormalizationEngine:
         logger.info("NormalizationEngine initialized successfully.")
 
     def _verify_model_consistency(self) -> None:
-        """
-        Checks if the loaded model matches the one used to build the index.
-        """
+        """Check if the loaded model matches the one used to build the index."""
         logger.info("Performing model consistency check...")
         with get_session() as session:
             metadata = dal.get_index_metadata(session)
@@ -87,10 +83,10 @@ class NormalizationEngine:
         top_k: Optional[int] = None,
         threshold: Optional[float] = None,
     ) -> NormalizationOutput:
-        """
-        Executes the full normalization pipeline for a given input.
+        """Execute the full normalization pipeline for a given input.
 
-        Pipeline: Preprocess -> Embed -> Stage 1 (Generate) -> Threshold -> Stage 2 (Rank)
+        Pipeline: Preprocess -> Embed -> Stage 1 (Generate) -> Threshold ->
+        Stage 2 (Rank)
 
         Args:
             input_data: The input data containing the text to normalize.
@@ -101,6 +97,7 @@ class NormalizationEngine:
 
         Returns:
             An object containing the original input and the list of ranked candidates.
+
         """
         # Set defaults from settings if not provided
         k = top_k or self.settings.DEFAULT_TOP_K
@@ -144,6 +141,6 @@ try:
 except (ValueError, Exception) as e:
     logger.error(f"Failed to initialize the default NormalizationEngine: {e}")
     logger.error(
-        "This may be expected if the database is not yet available or " "indexed."
+        "This may be expected if the database is not yet available or indexed."
     )
     engine = None

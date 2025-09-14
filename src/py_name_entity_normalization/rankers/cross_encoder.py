@@ -1,6 +1,5 @@
-"""
-Re-ranker implementation using a Cross-Encoder model.
-"""
+"""Re-ranker implementation using a Cross-Encoder model."""
+
 from typing import List
 
 import torch
@@ -11,8 +10,7 @@ from ..core.schemas import Candidate, RankedCandidate
 
 
 class CrossEncoderRanker(IRanker):
-    """
-    A re-ranker that uses a Cross-Encoder model for more accurate scoring.
+    """A re-ranker that uses a Cross-Encoder model for more accurate scoring.
 
     Cross-Encoders jointly process a pair of texts (e.g., query and candidate name)
     and output a single score, which is generally more accurate than using
@@ -20,13 +18,13 @@ class CrossEncoderRanker(IRanker):
     """
 
     def __init__(self, model_name: str, device: str | None = None):
-        """
-        Initializes the CrossEncoderRanker.
+        """Initialize the CrossEncoderRanker.
 
         Args:
             model_name: The name of the Cross-Encoder model to load.
             device: The device to run the model on (e.g., 'cpu', 'cuda').
                     If None, it will auto-detect CUDA availability.
+
         """
         self._model_name = model_name
         if device is None:
@@ -41,8 +39,7 @@ class CrossEncoderRanker(IRanker):
         print("Cross-encoder loaded successfully.")
 
     def rank(self, query: str, candidates: List[Candidate]) -> List[RankedCandidate]:
-        """
-        Re-ranks candidates using the Cross-Encoder model.
+        """Re-ranks candidates using the Cross-Encoder model.
 
         Args:
             query: The original query text.
@@ -51,6 +48,7 @@ class CrossEncoderRanker(IRanker):
         Returns:
             A list of RankedCandidate objects, sorted by the cross-encoder's
             score in descending order.
+
         """
         if not candidates:
             return []

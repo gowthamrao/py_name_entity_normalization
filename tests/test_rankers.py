@@ -1,10 +1,10 @@
-"""
-Tests for the ranker modules, including concrete implementations and the factory.
-"""
+"""Tests for the ranker modules, including concrete implementations and the factory."""
+
 from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
+
 from py_name_entity_normalization.rankers.cosine import CosineSimilarityRanker
 from py_name_entity_normalization.rankers.cross_encoder import CrossEncoderRanker
 from py_name_entity_normalization.rankers.factory import get_ranker
@@ -12,9 +12,7 @@ from py_name_entity_normalization.rankers.llm import LLMRanker
 
 
 def test_cosine_similarity_ranker(comprehensive_candidates):
-    """
-    Tests the CosineSimilarityRanker.
-    """
+    """Tests the CosineSimilarityRanker."""
     # Arrange
     ranker = CosineSimilarityRanker()
 
@@ -31,9 +29,7 @@ def test_cosine_similarity_ranker(comprehensive_candidates):
 
 
 def test_cross_encoder_ranker(mocker, test_settings, comprehensive_candidates):
-    """
-    Tests the CrossEncoderRanker, mocking the underlying model.
-    """
+    """Tests the CrossEncoderRanker, mocking the underlying model."""
     # Arrange
     mock_cross_encoder_model = MagicMock()
     # Mock scores that are deliberately not in sorted order
@@ -65,9 +61,7 @@ def test_cross_encoder_ranker(mocker, test_settings, comprehensive_candidates):
 
 
 def test_cross_encoder_ranker_init_device_auto(mocker, test_settings):
-    """
-    Tests that the device is auto-detected correctly if not provided.
-    """
+    """Tests that the device is auto-detected correctly if not provided."""
     mock_cross_encoder_model = MagicMock()
     mock_cross_encoder_constructor = mocker.patch(
         "py_name_entity_normalization.rankers.cross_encoder.CrossEncoder",
@@ -92,9 +86,7 @@ def test_cross_encoder_ranker_init_device_auto(mocker, test_settings):
 
 
 def test_cross_encoder_ranker_empty_candidates(mocker, test_settings):
-    """
-    Tests that the ranker handles an empty list of candidates gracefully.
-    """
+    """Tests that the ranker handles an empty list of candidates gracefully."""
     # Arrange
     mock_cross_encoder_model = MagicMock()
     mocker.patch(
@@ -112,9 +104,7 @@ def test_cross_encoder_ranker_empty_candidates(mocker, test_settings):
 
 
 def test_llm_ranker():
-    """
-    Tests that the LLMRanker raises NotImplementedError.
-    """
+    """Tests that the LLMRanker raises NotImplementedError."""
     # Arrange
     ranker = LLMRanker()
 
@@ -124,9 +114,7 @@ def test_llm_ranker():
 
 
 def test_get_ranker_factory(test_settings, mocker):
-    """
-    Tests the get_ranker factory function for all strategies.
-    """
+    """Tests the get_ranker factory function for all strategies."""
     # Mock the ranker classes to prevent model loading
     mock_cosine = mocker.patch(
         "py_name_entity_normalization.rankers.factory.CosineSimilarityRanker"
@@ -155,9 +143,7 @@ def test_get_ranker_factory(test_settings, mocker):
 
 
 def test_get_ranker_factory_unknown_strategy(test_settings):
-    """
-    Tests that the factory raises an error for an unknown strategy.
-    """
+    """Tests that the factory raises an error for an unknown strategy."""
     test_settings.RERANKING_STRATEGY = "unknown_strategy"
     with pytest.raises(ValueError, match="Unknown re-ranking strategy"):
         get_ranker(test_settings)
