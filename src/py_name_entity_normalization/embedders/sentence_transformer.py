@@ -1,9 +1,10 @@
 """Concrete implementation of the IEmbedder interface using sentence-transformers."""
 
-from typing import List
+from typing import List, cast
 
 import numpy as np
 import torch
+from numpy.typing import NDArray
 from sentence_transformers import SentenceTransformer
 
 from ..core.interfaces import IEmbedder
@@ -16,6 +17,7 @@ class SentenceTransformerEmbedder(IEmbedder):
         """Initialize the SentenceTransformerEmbedder.
 
         Args:
+        ----
             model_name: The name of the model to load from Hugging Face Hub.
             device: The device to run the model on (e.g., 'cpu', 'cuda').
                     If None, it will auto-detect CUDA availability.
@@ -32,42 +34,56 @@ class SentenceTransformerEmbedder(IEmbedder):
         self.model = SentenceTransformer(self._model_name, device=self.device)
         print("Model loaded successfully.")
 
-    def encode(self, text: str) -> np.ndarray:
+    def encode(self, text: str) -> NDArray[np.float_]:
         """Encode a single string of text into an embedding vector.
 
         Args:
+        ----
             text: The input text.
 
         Returns:
+        -------
             A NumPy array representing the embedding.
 
         """
-        return self.model.encode(
-            text, convert_to_numpy=True, device=self.device, normalize_embeddings=True
+        return cast(
+            NDArray[np.float_],
+            self.model.encode(
+                text,
+                convert_to_numpy=True,
+                device=self.device,
+                normalize_embeddings=True,
+            ),
         )
 
-    def encode_batch(self, texts: List[str]) -> np.ndarray:
+    def encode_batch(self, texts: List[str]) -> NDArray[np.float_]:
         """Encode a batch of texts into embedding vectors.
 
         Args:
+        ----
             texts: A list of input texts.
 
         Returns:
+        -------
             A NumPy array of shape (n_texts, embedding_dimension).
 
         """
-        return self.model.encode(
-            texts,
-            convert_to_numpy=True,
-            batch_size=32,  # A reasonable default batch size
-            device=self.device,
-            normalize_embeddings=True,
+        return cast(
+            NDArray[np.float_],
+            self.model.encode(
+                texts,
+                convert_to_numpy=True,
+                batch_size=32,  # A reasonable default batch size
+                device=self.device,
+                normalize_embeddings=True,
+            ),
         )
 
     def get_model_name(self) -> str:
         """Return the name of the underlying embedding model.
 
-        Returns:
+        Returns
+        -------
             The model name string.
 
         """
@@ -76,8 +92,12 @@ class SentenceTransformerEmbedder(IEmbedder):
     def get_dimension(self) -> int:
         """Return the dimension of the embeddings produced by the model.
 
-        Returns:
+        Returns
+        -------
             The embedding dimension as an integer.
 
         """
-        return self.model.get_sentence_embedding_dimension()
+        dimension = self.model.get_sentence_embedding_dimension()
+        if dimension is None:
+            raise ValueError("Could not determine embedding dimension from the model.")
+        return int(dimension)

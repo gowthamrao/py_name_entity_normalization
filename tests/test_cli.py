@@ -3,14 +3,15 @@
 import runpy
 from unittest.mock import MagicMock
 
-from typer.testing import CliRunner
+from pytest_mock import MockerFixture
 
 from py_name_entity_normalization.cli import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
 
-def test_cli_build_index(mocker):
+def test_cli_build_index(mocker: MockerFixture) -> None:
     """Tests the build-index command in a success scenario."""
     # Arrange
     mock_builder_class = mocker.patch("py_name_entity_normalization.cli.IndexBuilder")
@@ -40,7 +41,7 @@ def test_cli_build_index(mocker):
         assert kwargs["force"] is True
 
 
-def test_cli_build_index_file_not_found(mocker):
+def test_cli_build_index_file_not_found(mocker: MockerFixture) -> None:
     """Tests that build-index fails if the file doesn't exist."""
     # Act
     result = runner.invoke(app, ["build-index", "nonexistent.csv"])
@@ -51,7 +52,7 @@ def test_cli_build_index_file_not_found(mocker):
     assert "Error during index build" in result.stdout
 
 
-def test_cli_verify_index_success(mocker):
+def test_cli_verify_index_success(mocker: MockerFixture) -> None:
     """Tests the verify-index command in a success scenario."""
     # Arrange
     mock_engine_class = mocker.patch(
@@ -72,7 +73,7 @@ def test_cli_verify_index_success(mocker):
     mock_engine_class.assert_called_once()
 
 
-def test_cli_verify_index_failure(mocker):
+def test_cli_verify_index_failure(mocker: MockerFixture) -> None:
     """Tests that verify-index handles errors during engine initialization."""
     # Arrange
     mock_engine_class = mocker.patch(
@@ -89,7 +90,7 @@ def test_cli_verify_index_failure(mocker):
     assert "Test Error" in result.stdout
 
 
-def test_cli_main_entrypoint(mocker):
+def test_cli_main_entrypoint(mocker: MockerFixture) -> None:
     """Tests the `if __name__ == '__main__'` block."""
     # To test the __main__ block, we can't use the CliRunner.
     # Instead, we use runpy to execute the module as a script.

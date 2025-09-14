@@ -79,4 +79,4 @@ class Settings(BaseSettings):
 
 
 # Create a single, importable instance of the settings
-settings = Settings()
+settings = Settings()  # type: ignore

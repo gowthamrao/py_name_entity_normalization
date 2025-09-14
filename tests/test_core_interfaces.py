@@ -1,17 +1,16 @@
 """Tests for the abstract base classes in core.interfaces."""
 
 import pytest
-
 from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
 
 
-def test_iembedder_interfaces_raise_not_implemented():
+def test_iembedder_interfaces_raise_not_implemented() -> None:
     """Test that calling IEmbedder abstract methods raises NotImplementedError."""
     # Temporarily make the class concrete for instantiation
     # by clearing the abstract methods set.
     IEmbedder.__abstractmethods__ = frozenset()
 
-    embedder = IEmbedder()
+    embedder = IEmbedder()  # type: ignore
     with pytest.raises(NotImplementedError):
         embedder.encode("test")
     with pytest.raises(NotImplementedError):
@@ -22,11 +21,11 @@ def test_iembedder_interfaces_raise_not_implemented():
         embedder.get_dimension()
 
 
-def test_iranker_interfaces_raise_not_implemented():
+def test_iranker_interfaces_raise_not_implemented() -> None:
     """Tests that calling the abstract methods of IRanker raises NotImplementedError."""
     # Temporarily make the class concrete for instantiation
     IRanker.__abstractmethods__ = frozenset()
 
-    ranker = IRanker()
+    ranker = IRanker()  # type: ignore
     with pytest.raises(NotImplementedError):
         ranker.rank("query", [])

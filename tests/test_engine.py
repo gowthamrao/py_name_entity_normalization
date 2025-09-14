@@ -1,22 +1,29 @@
 """Tests for the NormalizationEngine."""
 
-import pytest
+from typing import Any, List
+from unittest.mock import MagicMock
 
+import pytest
+from pytest_mock import MockerFixture
+
+from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.engine import NormalizationEngine
-from py_name_entity_normalization.core.schemas import NormalizationInput
+from py_name_entity_normalization.core.schemas import Candidate, NormalizationInput
 from py_name_entity_normalization.rankers.cosine import CosineSimilarityRanker
 from py_name_entity_normalization.rankers.factory import get_ranker
 from py_name_entity_normalization.rankers.llm import LLMRanker
 
 
 @pytest.fixture
-def mock_dal(mocker):
+def mock_dal(mocker: MockerFixture) -> MagicMock:
     """Mock the data access layer."""
     return mocker.patch("py_name_entity_normalization.core.engine.dal")
 
 
 @pytest.fixture
-def mock_factories(mocker, mock_embedder, mock_ranker):
+def mock_factories(
+    mocker: MockerFixture, mock_embedder: MagicMock, mock_ranker: MagicMock
+) -> None:
     """Mock the embedder and ranker factories."""
     mocker.patch(
         "py_name_entity_normalization.core.engine.get_embedder",
@@ -28,10 +35,8 @@ def mock_factories(mocker, mock_embedder, mock_ranker):
 
 
 @pytest.fixture
-def candidates_with_ambiguous_domain():
+def candidates_with_ambiguous_domain() -> List[Candidate]:
     """Return a list of candidates where 'cold' could be a Drug or a Condition."""
-    from py_name_entity_normalization.core.schemas import Candidate
-
     return [
         Candidate(
             concept_id=100,
@@ -52,7 +57,12 @@ def candidates_with_ambiguous_domain():
     ]
 
 
-def test_engine_init_success(test_settings, mock_dal, mock_factories, mock_db_session):
+def test_engine_init_success(
+    test_settings: Settings,
+    mock_dal: MagicMock,
+    mock_factories: None,
+    mock_db_session: MagicMock,
+) -> None:
     """Test successful initialization of the NormalizationEngine."""
     # Arrange: Metadata matches the mock embedder's model name
     mock_dal.get_index_metadata.return_value = {
@@ -67,8 +77,11 @@ def test_engine_init_success(test_settings, mock_dal, mock_factories, mock_db_se
 
 
 def test_engine_init_model_mismatch(
-    test_settings, mock_dal, mock_factories, mock_db_session
-):
+    test_settings: Settings,
+    mock_dal: MagicMock,
+    mock_factories: None,
+    mock_db_session: MagicMock,
+) -> None:
     """Test that initialization fails if the model name mismatches."""
     # Arrange: Metadata has a different model name
     mock_dal.get_index_metadata.return_value = {
@@ -81,8 +94,11 @@ def test_engine_init_model_mismatch(
 
 
 def test_engine_init_no_metadata(
-    test_settings, mock_dal, mock_factories, mock_db_session
-):
+    test_settings: Settings,
+    mock_dal: MagicMock,
+    mock_factories: None,
+    mock_db_session: MagicMock,
+) -> None:
     """Test that initialization succeeds if no index metadata is found."""
     # Arrange: DAL returns empty metadata
     mock_dal.get_index_metadata.return_value = {}
@@ -95,8 +111,12 @@ def test_engine_init_no_metadata(
 
 
 def test_normalize_happy_path(
-    test_settings, mock_dal, mock_factories, mock_db_session, comprehensive_candidates
-):
+    test_settings: Settings,
+    mock_dal: MagicMock,
+    mock_factories: None,
+    mock_db_session: MagicMock,
+    comprehensive_candidates: List[Candidate],
+) -> None:
     """Test a full, successful run of the normalize method."""
     # Arrange
     mock_dal.get_index_metadata.return_value = {}  # Skip consistency check
@@ -104,12 +124,12 @@ def test_normalize_happy_path(
     engine = NormalizationEngine(settings=test_settings)
 
     # Act
-    norm_input = NormalizationInput(text="aspirin")
+    norm_input = NormalizationInput(text="aspirin", domains=None)
     result = engine.normalize(norm_input)
 
     # Assert
     mock_dal.find_nearest_neighbors.assert_called_once()
-    assert engine.ranker.rank.call_count == 1
+    engine.ranker.rank.assert_called_once()  # type: ignore
     assert result.input == norm_input
     # Default threshold is 0.85, so 1 - distance must be > 0.85
     # distance must be < 0.15
@@ -120,8 +140,12 @@ def test_normalize_happy_path(
 
 
 def test_normalize_thresholding(
-    test_settings, mock_dal, mock_factories, mock_db_session, comprehensive_candidates
-):
+    test_settings: Settings,
+    mock_dal: MagicMock,
+    mock_factories: None,
+    mock_db_session: MagicMock,
+    comprehensive_candidates: List[Candidate],
+) -> None:
     """Test that the confidence threshold is applied correctly."""
     # Arrange
     mock_dal.get_index_metadata.return_value = {}
@@ -133,13 +157,13 @@ def test_normalize_thresholding(
     test_settings.DEFAULT_CONFIDENCE_THRESHOLD = 0.91
 
     # Act
-    _ = engine.normalize(NormalizationInput(text="aspirin"))
+    _ = engine.normalize(NormalizationInput(text="aspirin", domains=None))
 
     # Assert
     # Ranker is called with candidates with similarity > 0.91
     # Similarities: 0.99, 0.95, 0.92
-    assert engine.ranker.rank.call_count == 1
-    call_args, _ = engine.ranker.rank.call_args
+    engine.ranker.rank.assert_called_once()  # type: ignore
+    call_args, _ = engine.ranker.rank.call_args  # type: ignore
     assert len(call_args[1]) == 3
     assert call_args[1][0].concept_id == 1  # sim 0.99
     assert call_args[1][1].concept_id == 2  # sim 0.95
@@ -147,8 +171,11 @@ def test_normalize_thresholding(
 
 
 def test_normalize_no_candidates_found(
-    test_settings, mock_dal, mock_factories, mock_db_session
-):
+    test_settings: Settings,
+    mock_dal: MagicMock,
+    mock_factories: None,
+    mock_db_session: MagicMock,
+) -> None:
     """Test the case where the initial database search returns no candidates."""
     # Arrange
     mock_dal.get_index_metadata.return_value = {}
@@ -156,40 +183,46 @@ def test_normalize_no_candidates_found(
     engine = NormalizationEngine(settings=test_settings)
 
     # Act
-    result = engine.normalize(NormalizationInput(text="something unknown"))
+    result = engine.normalize(
+        NormalizationInput(text="something unknown", domains=None)
+    )
 
     # Assert
-    assert engine.ranker.rank.call_count == 0  # Ranker should not be called
+    engine.ranker.rank.assert_not_called()  # type: ignore
     assert len(result.candidates) == 0
 
 
 @pytest.mark.parametrize("text_input", ["", "   ", "!!@#$%"])
 def test_normalize_empty_input_text(
-    test_settings, mock_dal, mock_factories, mock_db_session, text_input
-):
+    test_settings: Settings,
+    mock_dal: MagicMock,
+    mock_factories: None,
+    mock_db_session: MagicMock,
+    text_input: str,
+) -> None:
     """Test that empty or cleaned-to-empty input returns an empty list."""
     # Arrange
     mock_dal.get_index_metadata.return_value = {}
     engine = NormalizationEngine(settings=test_settings)
 
     # Act
-    result = engine.normalize(NormalizationInput(text=text_input))
+    result = engine.normalize(NormalizationInput(text=text_input, domains=None))
 
     # Assert
-    assert engine.embedder.encode.call_count == 0
-    assert mock_dal.find_nearest_neighbors.call_count == 0
-    assert engine.ranker.rank.call_count == 0
+    engine.embedder.encode.assert_not_called()  # type: ignore
+    mock_dal.find_nearest_neighbors.assert_not_called()
+    engine.ranker.rank.assert_not_called()  # type: ignore
     assert len(result.candidates) == 0
 
 
 def test_engine_with_llm_ranker_fails(
-    test_settings,
-    mock_dal,
-    mock_embedder,
-    mock_db_session,
-    comprehensive_candidates,
-    mocker,
-):
+    test_settings: Settings,
+    mock_dal: MagicMock,
+    mock_embedder: MagicMock,
+    mock_db_session: MagicMock,
+    comprehensive_candidates: List[Candidate],
+    mocker: MockerFixture,
+) -> None:
     """Test that the engine correctly uses the LLMRanker and fails as expected."""
     # Arrange
     test_settings.RERANKING_STRATEGY = "llm"
@@ -211,17 +244,16 @@ def test_engine_with_llm_ranker_fails(
 
     # Act & Assert
     with pytest.raises(NotImplementedError, match="LLM-based re-ranking"):
-        engine.normalize(NormalizationInput(text="aspirin"))
+        engine.normalize(NormalizationInput(text="aspirin", domains=None))
 
 
 def test_normalize_with_domain_filter(
-    test_settings,
-    mock_dal,
-    mock_factories,
-    mock_db_session,
-    candidates_with_ambiguous_domain,
-    mocker,
-):
+    test_settings: Settings,
+    mock_dal: MagicMock,
+    mock_factories: None,
+    mock_db_session: MagicMock,
+    candidates_with_ambiguous_domain: List[Candidate],
+) -> None:
     """Test that the domain filter is correctly applied and passed to the DAL."""
     # Arrange
     # Mock DAL to return only the 'Condition' candidate when filtered
@@ -247,13 +279,13 @@ def test_normalize_with_domain_filter(
 
 
 def test_engine_with_cosine_ranker(
-    test_settings,
-    mock_dal,
-    mock_embedder,
-    mock_db_session,
-    comprehensive_candidates,
-    mocker,
-):
+    test_settings: Settings,
+    mock_dal: MagicMock,
+    mock_embedder: MagicMock,
+    mock_db_session: MagicMock,
+    comprehensive_candidates: List[Candidate],
+    mocker: MockerFixture,
+) -> None:
     """Test that the engine works correctly with the CosineSimilarityRanker."""
     # Arrange
     test_settings.RERANKING_STRATEGY = "cosine"
@@ -274,7 +306,7 @@ def test_engine_with_cosine_ranker(
     assert isinstance(engine.ranker, CosineSimilarityRanker)
 
     # Act
-    result = engine.normalize(NormalizationInput(text="aspirin"))
+    result = engine.normalize(NormalizationInput(text="aspirin", domains=None))
 
     # Assert
     assert len(result.candidates) == len(comprehensive_candidates)

@@ -1,21 +1,25 @@
 """Tests for the Data Access Layer (DAL) that interact with a real database."""
 
+from typing import Any, Dict
+
 import numpy as np
 import pandas as pd
 import pytest
+from sqlalchemy.orm import Session
 
+from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.database import dal
 from py_name_entity_normalization.database.models import OMOPIndex
 
 
 @pytest.fixture
-def sample_metadata():
+def sample_metadata() -> Dict[str, Dict[str, Any]]:
     """Sample metadata for testing."""
     return {"embedding_model_name": {"name": "test-model", "dimension": 4}}
 
 
 @pytest.fixture
-def sample_concepts_df(test_settings):
+def sample_concepts_df(test_settings: Settings) -> pd.DataFrame:
     """Sample concepts DataFrame for testing."""
     return pd.DataFrame(
         {
@@ -33,7 +37,9 @@ def sample_concepts_df(test_settings):
     )
 
 
-def test_upsert_and_get_index_metadata(db_session, sample_metadata):
+def test_upsert_and_get_index_metadata(
+    db_session: Session, sample_metadata: Dict[str, Dict[str, Any]]
+) -> None:
     """Tests that metadata can be inserted/updated and then retrieved."""
     # Act: Upsert the metadata
     dal.upsert_index_metadata(
@@ -55,7 +61,9 @@ def test_upsert_and_get_index_metadata(db_session, sample_metadata):
     assert metadata["embedding_model_name"] == updated_value
 
 
-def test_bulk_insert_and_find_nearest_neighbors(db_session, sample_concepts_df):
+def test_bulk_insert_and_find_nearest_neighbors(
+    db_session: Session, sample_concepts_df: pd.DataFrame
+) -> None:
     """Tests bulk inserting concepts and finding their nearest neighbors."""
     # Act: Insert the data
     dal.bulk_insert_omop_concepts(db_session, sample_concepts_df)
@@ -79,7 +87,9 @@ def test_bulk_insert_and_find_nearest_neighbors(db_session, sample_concepts_df):
     assert candidates[0].concept_name == "Aspirin"
 
 
-def test_find_nearest_neighbors_with_domain_filter(db_session, sample_concepts_df):
+def test_find_nearest_neighbors_with_domain_filter(
+    db_session: Session, sample_concepts_df: pd.DataFrame
+) -> None:
     """Tests that the domain filter is correctly applied."""
     # Arrange: Insert data
     dal.bulk_insert_omop_concepts(db_session, sample_concepts_df)
@@ -96,7 +106,7 @@ def test_find_nearest_neighbors_with_domain_filter(db_session, sample_concepts_d
     assert candidates[0].domain_id == "Condition"
 
 
-def test_models_repr():
+def test_models_repr() -> None:
     """Tests the __repr__ methods of the ORM models."""
     from py_name_entity_normalization.database.models import IndexMetadata
 

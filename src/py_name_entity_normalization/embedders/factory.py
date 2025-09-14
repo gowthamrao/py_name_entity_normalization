@@ -12,9 +12,11 @@ def get_embedder(settings: Settings) -> IEmbedder:
     extended to support other embedder types in the future.
 
     Args:
+    ----
         settings: The application settings object.
 
     Returns:
+    -------
         An instance of a class that implements the IEmbedder interface.
 
     """
