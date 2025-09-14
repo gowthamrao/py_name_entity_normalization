@@ -1,16 +1,15 @@
-"""
-Text preprocessing utilities.
+"""Text preprocessing utilities.
 
 This module contains functions for cleaning and preparing text before it is
 fed into the embedding model. Consistent preprocessing is key to achieving
 good performance.
 """
+
 import re
 
 
 def clean_text(text: str) -> str:
-    """
-    Performs basic cleaning of input text.
+    """Perform basic cleaning of input text.
 
     The cleaning steps include:
     - Lowercasing the text.
@@ -22,6 +21,7 @@ def clean_text(text: str) -> str:
 
     Returns:
         The cleaned string.
+
     """
     if not isinstance(text, str):
         return ""

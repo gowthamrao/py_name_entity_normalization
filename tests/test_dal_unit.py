@@ -1,23 +1,20 @@
-"""
-Unit tests for the Data Access Layer (DAL).
+"""Unit tests for the Data Access Layer (DAL).
 
 These tests mock the database session to test the DAL functions in isolation,
 ensuring that the SQLAlchemy query construction is correct without requiring a
 live database connection.
 """
+
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
-import pytest
+
 from py_name_entity_normalization.database import dal
-from py_name_entity_normalization.database.models import IndexMetadata, OMOPIndex
+from py_name_entity_normalization.database.models import OMOPIndex
 
 
 def test_get_index_metadata():
-    """
-    Tests that get_index_metadata correctly constructs a dictionary
-    from the database results.
-    """
+    """Test that get_index_metadata correctly constructs a dictionary."""
     # Arrange
     mock_session = MagicMock()
     mock_item_1 = MagicMock()
@@ -44,10 +41,7 @@ def test_get_index_metadata():
 
 
 def test_upsert_index_metadata():
-    """
-    Tests that upsert_index_metadata constructs the correct insert statement
-    and commits the session.
-    """
+    """Test that upsert_index_metadata constructs a correct insert statement."""
     # Arrange
     mock_session = MagicMock()
     key = "test_key"
@@ -62,10 +56,7 @@ def test_upsert_index_metadata():
 
 
 def test_bulk_insert_omop_concepts():
-    """
-    Tests that bulk_insert_omop_concepts calls the bulk_insert_mappings
-    method with the correct data.
-    """
+    """Test that bulk_insert_omop_concepts calls bulk_insert_mappings."""
     # Arrange
     mock_session = MagicMock()
     data = {
@@ -90,9 +81,7 @@ def test_bulk_insert_omop_concepts():
 
 @patch("py_name_entity_normalization.database.dal.select")
 def test_find_nearest_neighbors_no_domain(mock_select):
-    """
-    Tests find_nearest_neighbors without a domain filter.
-    """
+    """Test find_nearest_neighbors without a domain filter."""
     # Arrange
     mock_session = MagicMock()
     mock_stmt = MagicMock()
@@ -122,9 +111,7 @@ def test_find_nearest_neighbors_no_domain(mock_select):
 
 @patch("py_name_entity_normalization.database.dal.select")
 def test_find_nearest_neighbors_with_domain(mock_select):
-    """
-    Tests that find_nearest_neighbors correctly applies the domain filter.
-    """
+    """Test that find_nearest_neighbors correctly applies the domain filter."""
     # Arrange
     mock_session = MagicMock()
     mock_stmt_limit = MagicMock()

@@ -1,10 +1,10 @@
-"""
-Command-Line Interface (CLI) for the py_name_entity_normalization package.
+"""Command-Line Interface (CLI) for the py_name_entity_normalization package.
 
 This module provides commands for managing the normalization index, such as
 building it from source data and verifying its status. It uses the Typer
 library to create a user-friendly and well-documented CLI.
 """
+
 import logging
 from pathlib import Path
 
@@ -44,9 +44,7 @@ def build_index(
         ),
     ] = False,
 ):
-    """
-    Builds the vector index from a CSV file of OMOP concepts.
-    """
+    """Build the vector index from a CSV file of OMOP concepts."""
     console.rule("[bold green]Starting Index Build[/bold green]")
     try:
         settings = Settings()
@@ -64,9 +62,7 @@ def build_index(
 
 @app.command()
 def verify_index():
-    """
-    Verifies the status and metadata of the existing index.
-    """
+    """Verify the status and metadata of the existing index."""
     console.rule("[bold blue]Verifying Index[/bold blue]")
     try:
         settings = Settings()
@@ -74,9 +70,8 @@ def verify_index():
         engine = NormalizationEngine(settings)
         console.print("✅ NormalizationEngine initialized successfully.")
         console.print("✅ Model consistency check passed.")
-        console.print(
-            f"   [dim]Current Model:[/dim] [bold]{engine.embedder.get_model_name()}[/bold]"
-        )
+        console.print("   [dim]Current Model:[/dim]")
+        console.print(f"   [bold]{engine.embedder.get_model_name()}[/bold]")
 
         # Further verification can be added here, e.g., count items
         # with get_session() as session:

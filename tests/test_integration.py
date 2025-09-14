@@ -1,11 +1,12 @@
-"""
-Integration tests for the pyNameEntityNormalization package.
+"""Integration tests for the pyNameEntityNormalization package.
 
 These tests use a real database connection and verify the end-to-end
 workflow from the NormalizationEngine to the database.
 """
+
 import pandas as pd
 import pytest
+
 from py_name_entity_normalization.core.engine import NormalizationEngine
 from py_name_entity_normalization.core.schemas import NormalizationInput
 from py_name_entity_normalization.indexer.builder import IndexBuilder
@@ -13,8 +14,7 @@ from py_name_entity_normalization.indexer.builder import IndexBuilder
 
 @pytest.fixture(scope="module")
 def concept_df():
-    """
-    Creates a small, controlled DataFrame of concepts for testing.
+    """Create a small, controlled DataFrame of concepts for testing.
 
     The data includes a "clustered" group of similar terms for 'aspirin'
     and another distinct group for 'acetaminophen' to test search precision.
@@ -57,8 +57,7 @@ def concept_df():
 
 
 def test_normalization_engine_integration(db_session, test_settings, concept_df):
-    """
-    Tests the full end-to-end normalization pipeline.
+    """Tests the full end-to-end normalization pipeline.
 
     -   Builds an index from a controlled set of concepts.
     -   Initializes the NormalizationEngine.

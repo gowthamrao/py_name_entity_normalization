@@ -1,19 +1,17 @@
-"""
-Tests for the Command-Line Interface (CLI).
-"""
+"""Tests for the Command-Line Interface (CLI)."""
+
 import runpy
 from unittest.mock import MagicMock
 
-from py_name_entity_normalization.cli import app
 from typer.testing import CliRunner
+
+from py_name_entity_normalization.cli import app
 
 runner = CliRunner()
 
 
 def test_cli_build_index(mocker):
-    """
-    Tests the build-index command in a success scenario.
-    """
+    """Tests the build-index command in a success scenario."""
     # Arrange
     mock_builder_class = mocker.patch("py_name_entity_normalization.cli.IndexBuilder")
     mock_builder_instance = MagicMock()
@@ -43,9 +41,7 @@ def test_cli_build_index(mocker):
 
 
 def test_cli_build_index_file_not_found(mocker):
-    """
-    Tests that build-index fails if the file doesn't exist.
-    """
+    """Tests that build-index fails if the file doesn't exist."""
     # Act
     result = runner.invoke(app, ["build-index", "nonexistent.csv"])
 
@@ -56,9 +52,7 @@ def test_cli_build_index_file_not_found(mocker):
 
 
 def test_cli_verify_index_success(mocker):
-    """
-    Tests the verify-index command in a success scenario.
-    """
+    """Tests the verify-index command in a success scenario."""
     # Arrange
     mock_engine_class = mocker.patch(
         "py_name_entity_normalization.cli.NormalizationEngine"
@@ -79,9 +73,7 @@ def test_cli_verify_index_success(mocker):
 
 
 def test_cli_verify_index_failure(mocker):
-    """
-    Tests that verify-index handles errors during engine initialization.
-    """
+    """Tests that verify-index handles errors during engine initialization."""
     # Arrange
     mock_engine_class = mocker.patch(
         "py_name_entity_normalization.cli.NormalizationEngine"
@@ -98,9 +90,7 @@ def test_cli_verify_index_failure(mocker):
 
 
 def test_cli_main_entrypoint(mocker):
-    """
-    Tests the `if __name__ == '__main__'` block.
-    """
+    """Tests the `if __name__ == '__main__'` block."""
     # To test the __main__ block, we can't use the CliRunner.
     # Instead, we use runpy to execute the module as a script.
     # We mock the __call__ method of the Typer app object itself

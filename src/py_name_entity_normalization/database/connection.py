@@ -1,10 +1,10 @@
-"""
-Manages the database connection and session creation.
+"""Manages the database connection and session creation.
 
 This module sets up the SQLAlchemy engine and provides a session factory
 for interacting with the database. The connection string is read from the
 application's configuration.
 """
+
 from contextlib import contextmanager
 from typing import Generator
 
@@ -22,14 +22,14 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 @contextmanager
 def get_session() -> Generator[Session, None, None]:
-    """
-    Provide a transactional scope around a series of operations.
+    """Provide a transactional scope around a series of operations.
 
     This context manager will create a new session, manage its lifecycle,
     and ensure it's properly closed.
 
     Yields:
         The SQLAlchemy session.
+
     """
     db_session = SessionLocal()
     try:

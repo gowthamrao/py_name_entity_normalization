@@ -1,28 +1,27 @@
-"""
-Pytest fixtures for the entire test suite.
+"""Pytest fixtures for the entire test suite.
 
 This file contains shared fixtures used across multiple test files, such as
 mocked services, database sessions, and configuration objects. This approach
 promotes code reuse and makes tests cleaner and easier to maintain.
 """
+
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
 from py_name_entity_normalization.core.schemas import Candidate, RankedCandidate
 from py_name_entity_normalization.database.models import Base
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
 
 
 @pytest.fixture(scope="function")
 def test_settings() -> Settings:
-    """
-    Returns a Settings object for testing.
-    """
+    """Return a Settings object for testing."""
     # Match the default model dimension to avoid pgvector errors during testing
     # when the test settings are used to configure a model but the default settings
     # were used when the ORM model was defined.
@@ -36,8 +35,8 @@ def test_settings() -> Settings:
 
 @pytest.fixture(scope="function")
 def db_engine(test_settings):
-    """
-    Yields a SQLAlchemy engine for the test database.
+    """Yield a SQLAlchemy engine for the test database.
+
     Creates and drops the database schema.
     """
     engine = create_engine(test_settings.DATABASE_URL)
@@ -48,8 +47,8 @@ def db_engine(test_settings):
 
 @pytest.fixture
 def db_session(db_engine):
-    """
-    Yields a SQLAlchemy session for a single test.
+    """Yield a SQLAlchemy session for a single test.
+
     Rolls back transactions to ensure test isolation.
     """
     connection = db_engine.connect()
@@ -63,8 +62,7 @@ def db_session(db_engine):
 
 @pytest.fixture
 def mock_db_session():
-    """
-    Provides a mock of the SQLAlchemy session.
+    """Provide a mock of the SQLAlchemy session.
 
     This fixture patches the `get_session` context manager to yield a
     MagicMock object, preventing any real database connections during tests.
@@ -79,9 +77,7 @@ def mock_db_session():
 
 @pytest.fixture
 def mock_embedder(test_settings) -> MagicMock:
-    """
-    Provides a mock of the IEmbedder interface.
-    """
+    """Provide a mock of the IEmbedder interface."""
     embedder = MagicMock(spec=IEmbedder)
     dim = test_settings.EMBEDDING_MODEL_DIMENSION
     embedder.get_model_name.return_value = "test/dummy-bert"
@@ -94,9 +90,7 @@ def mock_embedder(test_settings) -> MagicMock:
 
 @pytest.fixture
 def mock_ranker() -> MagicMock:
-    """
-    Provides a mock of the IRanker interface.
-    """
+    """Provide a mock of the IRanker interface."""
     ranker = MagicMock(spec=IRanker)
 
     def dummy_rank(query, candidates):
@@ -111,9 +105,7 @@ def mock_ranker() -> MagicMock:
 
 @pytest.fixture
 def comprehensive_candidates() -> list[Candidate]:
-    """
-    Provides a more comprehensive list of sample Candidate objects.
-    """
+    """Provide a more comprehensive list of sample Candidate objects."""
     return [
         # Exact match, different cases
         Candidate(
@@ -210,9 +202,7 @@ def comprehensive_candidates() -> list[Candidate]:
 
 @pytest.fixture
 def mock_pandas_read_csv(mocker):
-    """
-    Mocks pandas.read_csv to return a controlled DataFrame iterator.
-    """
+    """Mock pandas.read_csv to return a controlled DataFrame iterator."""
     dummy_df = pd.DataFrame(
         {
             "concept_id": [1, 2, 3],
