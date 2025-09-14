@@ -27,7 +27,8 @@ def get_session() -> Generator[Session, None, None]:
     This context manager will create a new session, manage its lifecycle,
     and ensure it's properly closed.
 
-    Yields:
+    Yields
+    ------
         The SQLAlchemy session.
 
     """

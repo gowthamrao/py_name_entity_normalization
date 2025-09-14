@@ -6,14 +6,16 @@ workflow from the NormalizationEngine to the database.
 
 import pandas as pd
 import pytest
+from sqlalchemy.orm import Session
 
+from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.engine import NormalizationEngine
 from py_name_entity_normalization.core.schemas import NormalizationInput
 from py_name_entity_normalization.indexer.builder import IndexBuilder
 
 
 @pytest.fixture(scope="module")
-def concept_df():
+def concept_df() -> pd.DataFrame:
     """Create a small, controlled DataFrame of concepts for testing.
 
     The data includes a "clustered" group of similar terms for 'aspirin'
@@ -56,7 +58,9 @@ def concept_df():
     return pd.DataFrame(data)
 
 
-def test_normalization_engine_integration(db_session, test_settings, concept_df):
+def test_normalization_engine_integration(
+    db_session: Session, test_settings: Settings, concept_df: pd.DataFrame
+) -> None:
     """Tests the full end-to-end normalization pipeline.
 
     -   Builds an index from a controlled set of concepts.
@@ -67,15 +71,15 @@ def test_normalization_engine_integration(db_session, test_settings, concept_df)
     """
     # 1. Build the index with the test data
     # Use a real embedder as specified in the test settings
-    builder = IndexBuilder(settings=test_settings, db_session=db_session)
-    builder.build_index(concept_df, force=True)
+    builder = IndexBuilder(settings=test_settings)
+    builder.build_index_from_dataframe(concept_df, db_session, force=True)
 
     # 2. Initialize the engine
     # This will perform the model consistency check against the new index
     engine = NormalizationEngine(settings=test_settings)
 
     # 3. Normalize a specific term that has a close cluster
-    norm_input = NormalizationInput(text="aspirin 81 mg oral tablet")
+    norm_input = NormalizationInput(text="aspirin 81 mg oral tablet", domains=None)
     result = engine.normalize(norm_input)
 
     # 4. Assert the results

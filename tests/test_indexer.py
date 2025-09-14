@@ -1,27 +1,37 @@
 """Tests for the offline indexer module."""
 
-from unittest.mock import call
+from unittest.mock import MagicMock, call
 
 import pandas as pd
 import pytest
+from pytest_mock import MockerFixture
 
+from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.indexer.builder import IndexBuilder
 
 
 @pytest.fixture
-def mock_dal_indexer(mocker):
+def mock_dal_indexer(mocker: MockerFixture) -> MagicMock:
     """Mock the DAL functions used by the indexer."""
     # We patch the dal module *within the indexer's namespace*
     return mocker.patch("py_name_entity_normalization.indexer.builder.dal")
 
 
 @pytest.fixture
-def mock_engine_indexer(mocker):
+def mock_engine_indexer(mocker: MockerFixture) -> MagicMock:
     """Mock the SQLAlchemy engine used by the indexer."""
     return mocker.patch("py_name_entity_normalization.indexer.builder.engine")
 
 
-def test_index_builder_init(test_settings, mock_embedder, mocker):
+@pytest.fixture
+def mock_base_indexer(mocker: MockerFixture) -> MagicMock:
+    """Mock the Base object used by the indexer."""
+    return mocker.patch("py_name_entity_normalization.indexer.builder.Base")
+
+
+def test_index_builder_init(
+    test_settings: Settings, mock_embedder: MagicMock, mocker: MockerFixture
+) -> None:
     """Test the initialization of IndexBuilder."""
     # Mock the factory to return our mock embedder
     mocker.patch(
@@ -32,7 +42,9 @@ def test_index_builder_init(test_settings, mock_embedder, mocker):
     assert builder.embedder is mock_embedder
 
 
-def test_index_builder_init_dimension_mismatch(test_settings, mock_embedder, mocker):
+def test_index_builder_init_dimension_mismatch(
+    test_settings: Settings, mock_embedder: MagicMock, mocker: MockerFixture
+) -> None:
     """Test that IndexBuilder raises an error if dimensions mismatch."""
     mock_embedder.get_dimension.return_value = 999  # Different from settings
     mocker.patch(
@@ -45,14 +57,14 @@ def test_index_builder_init_dimension_mismatch(test_settings, mock_embedder, moc
 
 
 def test_build_index_from_csv(
-    test_settings,
-    mock_dal_indexer,
-    mock_engine_indexer,
-    mock_embedder,
-    mock_db_session,
-    mock_pandas_read_csv,
-    mocker,
-):
+    test_settings: Settings,
+    mock_dal_indexer: MagicMock,
+    mock_engine_indexer: MagicMock,
+    mock_embedder: MagicMock,
+    mock_db_session: MagicMock,
+    mock_pandas_read_csv: MagicMock,
+    mocker: MockerFixture,
+) -> None:
     """Test the full build_index_from_csv workflow."""
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="data" * 100))
@@ -96,14 +108,15 @@ def test_build_index_from_csv(
 
 
 def test_build_index_from_csv_with_force(
-    test_settings,
-    mock_dal_indexer,
-    mock_engine_indexer,
-    mock_embedder,
-    mock_db_session,
-    mock_pandas_read_csv,
-    mocker,
-):
+    test_settings: Settings,
+    mock_dal_indexer: MagicMock,
+    mock_engine_indexer: MagicMock,
+    mock_embedder: MagicMock,
+    mock_db_session: MagicMock,
+    mock_pandas_read_csv: MagicMock,
+    mocker: MockerFixture,
+    mock_base_indexer: MagicMock,
+) -> None:
     """Test that the 'force' flag correctly drops and recreates the schema."""
     # Arrange
     mocker.patch("builtins.open", mocker.mock_open(read_data="data" * 100))
@@ -118,18 +131,18 @@ def test_build_index_from_csv_with_force(
 
     # Assert
     # Check that schema creation/deletion methods were called
-    mock_dal_indexer.Base.metadata.drop_all.assert_called_once_with(mock_engine_indexer)
+    mock_base_indexer.metadata.drop_all.assert_called_once_with(mock_engine_indexer)
     mock_dal_indexer.create_database_schema.assert_called_once_with(mock_engine_indexer)
 
 
 def test_build_index_from_csv_empty_chunk(
-    test_settings,
-    mock_dal_indexer,
-    mock_engine_indexer,
-    mock_embedder,
-    mock_db_session,
-    mocker,
-):
+    test_settings: Settings,
+    mock_dal_indexer: MagicMock,
+    mock_engine_indexer: MagicMock,
+    mock_embedder: MagicMock,
+    mock_db_session: MagicMock,
+    mocker: MockerFixture,
+) -> None:
     """Test that the indexer correctly handles and skips empty chunks."""
     # Arrange
     # This chunk will be empty after dropping NA and filtering by length

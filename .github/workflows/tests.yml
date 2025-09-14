@@ -11,6 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Free up disk space
+        run: |
+          echo "Initial free space:"
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          echo "Free space after cleanup:"
+          df -h
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -35,7 +45,7 @@ jobs:
         env:
           POSTGRES_USER: user
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: nen_db
+          POSTGRES_DB: nen_db_test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -50,6 +60,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Free up disk space
+      run: |
+        echo "Initial free space:"
+        df -h
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf "/usr/local/share/boost"
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        echo "Free space after cleanup:"
+        df -h
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
@@ -60,5 +80,9 @@ jobs:
       run: poetry install
     - name: Run tests
       env:
-        DATABASE_URL: postgresql+psycopg://user:password@localhost:${{ job.services.postgres.ports[5432] }}/nen_db
+        DATABASE_URL: postgresql+psycopg://user:password@localhost:${{ job.services.postgres.ports[5432] }}/nen_db_test
       run: poetry run pytest
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}

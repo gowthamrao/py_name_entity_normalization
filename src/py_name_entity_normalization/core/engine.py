@@ -33,9 +33,11 @@ class NormalizationEngine:
         performing a crucial model consistency check.
 
         Args:
+        ----
             settings: The application settings object.
 
         Raises:
+        ------
             ValueError: If the embedding model used for the index does not
                         match the currently configured model.
 
@@ -89,6 +91,7 @@ class NormalizationEngine:
         Stage 2 (Rank)
 
         Args:
+        ----
             input_data: The input data containing the text to normalize.
             top_k: The number of candidates to retrieve from the ANN search.
                    Overrides the default if provided.
@@ -96,6 +99,7 @@ class NormalizationEngine:
                        Overrides the default if provided.
 
         Returns:
+        -------
             An object containing the original input and the list of ranked candidates.
 
         """
@@ -136,6 +140,7 @@ class NormalizationEngine:
 
 
 # A default, importable instance of the engine for convenience
+engine: Optional[NormalizationEngine]
 try:
     engine = NormalizationEngine(settings=default_settings)
 except (ValueError, Exception) as e:

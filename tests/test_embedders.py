@@ -1,10 +1,13 @@
 """Tests for the embedder module, including the concrete implementation and factory."""
 
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+from pytest_mock import MockerFixture
 
+from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.embedders.factory import get_embedder
 from py_name_entity_normalization.embedders.sentence_transformer import (
     SentenceTransformerEmbedder,
@@ -12,7 +15,9 @@ from py_name_entity_normalization.embedders.sentence_transformer import (
 
 
 @pytest.fixture
-def mock_sentence_transformer(mocker, test_settings):
+def mock_sentence_transformer(
+    mocker: MockerFixture, test_settings: Settings
+) -> MagicMock:
     """Mock the SentenceTransformer class where it is used."""
     mock_model = MagicMock()
     mock_model.encode.return_value = np.random.rand(
@@ -28,7 +33,9 @@ def mock_sentence_transformer(mocker, test_settings):
     )
 
 
-def test_sentence_transformer_embedder_init(mock_sentence_transformer, test_settings):
+def test_sentence_transformer_embedder_init(
+    mock_sentence_transformer: MagicMock, test_settings: Settings
+) -> None:
     """Tests the initialization of the SentenceTransformerEmbedder."""
     # Act
     embedder = SentenceTransformerEmbedder(
@@ -44,8 +51,10 @@ def test_sentence_transformer_embedder_init(mock_sentence_transformer, test_sett
 
 
 def test_sentence_transformer_embedder_init_device_auto(
-    mocker, mock_sentence_transformer, test_settings
-):
+    mocker: MockerFixture,
+    mock_sentence_transformer: MagicMock,
+    test_settings: Settings,
+) -> None:
     """Tests that the device is auto-detected correctly if not provided."""
     # Test with CUDA available
     mocker.patch("torch.cuda.is_available", return_value=True)
@@ -68,7 +77,9 @@ def test_sentence_transformer_embedder_init_device_auto(
     )
 
 
-def test_sentence_transformer_embedder_encode(mock_sentence_transformer, test_settings):
+def test_sentence_transformer_embedder_encode(
+    mock_sentence_transformer: MagicMock, test_settings: Settings
+) -> None:
     """Tests the encode method."""
     # Arrange
     embedder = SentenceTransformerEmbedder(
@@ -87,8 +98,8 @@ def test_sentence_transformer_embedder_encode(mock_sentence_transformer, test_se
 
 
 def test_sentence_transformer_embedder_encode_batch(
-    mock_sentence_transformer, test_settings
-):
+    mock_sentence_transformer: MagicMock, test_settings: Settings
+) -> None:
     """Tests the encode_batch method."""
     # Arrange
     embedder = SentenceTransformerEmbedder(
@@ -111,8 +122,8 @@ def test_sentence_transformer_embedder_encode_batch(
 
 
 def test_sentence_transformer_embedder_getters(
-    mock_sentence_transformer, test_settings
-):
+    mock_sentence_transformer: MagicMock, test_settings: Settings
+) -> None:
     """Tests the get_model_name and get_dimension methods."""
     # Arrange
     embedder = SentenceTransformerEmbedder(
@@ -125,7 +136,7 @@ def test_sentence_transformer_embedder_getters(
     embedder.model.get_sentence_embedding_dimension.assert_called_once()
 
 
-def test_get_embedder_factory(test_settings):
+def test_get_embedder_factory(test_settings: Settings) -> None:
     """Tests the get_embedder factory function."""
     # Arrange - Patch the embedder class to avoid real model loading
     with patch(

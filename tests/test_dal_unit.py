@@ -5,6 +5,7 @@ ensuring that the SQLAlchemy query construction is correct without requiring a
 live database connection.
 """
 
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
@@ -13,7 +14,7 @@ from py_name_entity_normalization.database import dal
 from py_name_entity_normalization.database.models import OMOPIndex
 
 
-def test_get_index_metadata():
+def test_get_index_metadata() -> None:
     """Test that get_index_metadata correctly constructs a dictionary."""
     # Arrange
     mock_session = MagicMock()
@@ -40,7 +41,7 @@ def test_get_index_metadata():
     mock_session.execute.assert_called_once()
 
 
-def test_upsert_index_metadata():
+def test_upsert_index_metadata() -> None:
     """Test that upsert_index_metadata constructs a correct insert statement."""
     # Arrange
     mock_session = MagicMock()
@@ -55,7 +56,7 @@ def test_upsert_index_metadata():
     mock_session.commit.assert_called_once()
 
 
-def test_bulk_insert_omop_concepts():
+def test_bulk_insert_omop_concepts() -> None:
     """Test that bulk_insert_omop_concepts calls bulk_insert_mappings."""
     # Arrange
     mock_session = MagicMock()
@@ -80,7 +81,7 @@ def test_bulk_insert_omop_concepts():
 
 
 @patch("py_name_entity_normalization.database.dal.select")
-def test_find_nearest_neighbors_no_domain(mock_select):
+def test_find_nearest_neighbors_no_domain(mock_select: MagicMock) -> None:
     """Test find_nearest_neighbors without a domain filter."""
     # Arrange
     mock_session = MagicMock()
@@ -110,7 +111,7 @@ def test_find_nearest_neighbors_no_domain(mock_select):
 
 
 @patch("py_name_entity_normalization.database.dal.select")
-def test_find_nearest_neighbors_with_domain(mock_select):
+def test_find_nearest_neighbors_with_domain(mock_select: MagicMock) -> None:
     """Test that find_nearest_neighbors correctly applies the domain filter."""
     # Arrange
     mock_session = MagicMock()
