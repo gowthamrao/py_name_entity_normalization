@@ -1,31 +1,42 @@
 """Tests for the offline indexer module."""
 
+from typing import cast
 from unittest.mock import MagicMock, call
 
 import pandas as pd
 import pytest
+from pytest_mock import MockerFixture
+
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.indexer.builder import IndexBuilder
-from pytest_mock import MockerFixture
 
 
 @pytest.fixture
 def mock_dal_indexer(mocker: MockerFixture) -> MagicMock:
     """Mock the DAL functions used by the indexer."""
     # We patch the dal module *within the indexer's namespace*
-    return mocker.patch("py_name_entity_normalization.indexer.builder.dal")
+    return cast(
+        MagicMock,
+        mocker.patch("py_name_entity_normalization.indexer.builder.dal"),
+    )
 
 
 @pytest.fixture
 def mock_engine_indexer(mocker: MockerFixture) -> MagicMock:
     """Mock the SQLAlchemy engine used by the indexer."""
-    return mocker.patch("py_name_entity_normalization.indexer.builder.engine")
+    return cast(
+        MagicMock,
+        mocker.patch("py_name_entity_normalization.indexer.builder.engine"),
+    )
 
 
 @pytest.fixture
 def mock_base_indexer(mocker: MockerFixture) -> MagicMock:
     """Mock the Base object used by the indexer."""
-    return mocker.patch("py_name_entity_normalization.indexer.builder.Base")
+    return cast(
+        MagicMock,
+        mocker.patch("py_name_entity_normalization.indexer.builder.Base"),
+    )
 
 
 def test_index_builder_init(

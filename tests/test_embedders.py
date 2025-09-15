@@ -1,15 +1,17 @@
 """Tests for the embedder module, including the concrete implementation and factory."""
 
+from typing import cast
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+from pytest_mock import MockerFixture
+
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.embedders.factory import get_embedder
 from py_name_entity_normalization.embedders.sentence_transformer import (
     SentenceTransformerEmbedder,
 )
-from pytest_mock import MockerFixture
 
 
 @pytest.fixture
@@ -25,9 +27,12 @@ def mock_sentence_transformer(
         test_settings.EMBEDDING_MODEL_DIMENSION
     )
     # Patch where the class is imported and used, not its source.
-    return mocker.patch(
-        "py_name_entity_normalization.embedders.sentence_transformer.SentenceTransformer",
-        return_value=mock_model,
+    return cast(
+        MagicMock,
+        mocker.patch(
+            "py_name_entity_normalization.embedders.sentence_transformer.SentenceTransformer",
+            return_value=mock_model,
+        ),
     )
 
 

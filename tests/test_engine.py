@@ -1,22 +1,23 @@
 """Tests for the NormalizationEngine."""
 
-from typing import List
+from typing import List, cast
 from unittest.mock import MagicMock
 
 import pytest
+from pytest_mock import MockerFixture
+
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.engine import NormalizationEngine
 from py_name_entity_normalization.core.schemas import Candidate, NormalizationInput
 from py_name_entity_normalization.rankers.cosine import CosineSimilarityRanker
 from py_name_entity_normalization.rankers.factory import get_ranker
 from py_name_entity_normalization.rankers.llm import LLMRanker
-from pytest_mock import MockerFixture
 
 
 @pytest.fixture
 def mock_dal(mocker: MockerFixture) -> MagicMock:
     """Mock the data access layer."""
-    return mocker.patch("py_name_entity_normalization.core.engine.dal")
+    return cast(MagicMock, mocker.patch("py_name_entity_normalization.core.engine.dal"))
 
 
 @pytest.fixture
