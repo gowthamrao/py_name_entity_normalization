@@ -12,13 +12,13 @@ except ModuleNotFoundError:  # pragma: no cover - provide minimal stub
     import types
 
     torch = types.ModuleType("torch")
+    cuda = cast(Any, types.ModuleType("cuda"))
 
-    class _Cuda:
-        @staticmethod
-        def is_available() -> bool:  # pragma: no cover - runtime stub
-            return False
+    def _is_available() -> bool:  # pragma: no cover - runtime stub
+        return False
 
-    torch.cuda = _Cuda()
+    cuda.is_available = _is_available
+    torch.cuda = cuda
     sys.modules["torch"] = torch
 
 try:  # pragma: no cover - optional dependency
