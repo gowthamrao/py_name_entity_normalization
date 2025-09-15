@@ -8,7 +8,7 @@ the rest of the application independent of the database schema and query details
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
-from sqlalchemy import Engine, select
+from sqlalchemy import Engine, select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -24,6 +24,10 @@ def create_database_schema(engine: Engine) -> None:
         engine: The SQLAlchemy engine instance.
 
     """
+    # Ensure the pgvector extension is available before creating tables
+    with engine.begin() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+
     Base.metadata.create_all(engine)
 
 
