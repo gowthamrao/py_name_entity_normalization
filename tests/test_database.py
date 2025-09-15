@@ -5,10 +5,11 @@ from typing import Any, Dict
 import numpy as np
 import pandas as pd
 import pytest
+from sqlalchemy.orm import Session
+
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.database import dal
 from py_name_entity_normalization.database.models import OMOPIndex
-from sqlalchemy.orm import Session
 
 
 @pytest.fixture
