@@ -5,6 +5,7 @@ mocked services, database sessions, and configuration objects. This approach
 promotes code reuse and makes tests cleaner and easier to maintain.
 """
 
+import os
 from typing import Any, Generator, List, cast
 from unittest.mock import MagicMock, patch
 
@@ -29,7 +30,10 @@ def test_settings() -> Settings:
     # when the test settings are used to configure a model but the default settings
     # were used when the ORM model was defined.
     return Settings(
-        DATABASE_URL="postgresql+psycopg://user:password@localhost:5432/nen_db_test",
+        DATABASE_URL=os.getenv(
+            "DATABASE_URL",
+            "postgresql+psycopg://user:password@localhost:5432/nen_db_test",
+        ),
         EMBEDDING_MODEL_NAME="test/dummy-bert",
         CROSS_ENCODER_MODEL_NAME="test/dummy-cross-encoder",
         EMBEDDING_MODEL_DIMENSION=768,
