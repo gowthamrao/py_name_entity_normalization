@@ -11,6 +11,7 @@ from ..config import Settings
 from ..core.interfaces import IEmbedder
 from ..database import dal
 from ..database.connection import engine
+from ..database.models import Base
 from ..embedders.factory import get_embedder
 
 logging.basicConfig(level=logging.INFO)
@@ -24,6 +25,7 @@ class IndexBuilder:
         """Initialize the IndexBuilder.
 
         Args:
+        ----
             settings: The application settings object.
 
         """
@@ -37,6 +39,70 @@ class IndexBuilder:
                 f"({self.settings.EMBEDDING_MODEL_DIMENSION}) "
                 f"does not match the actual model dimension ({model_dim})."
             )
+
+    def build_index_from_dataframe(
+        self, concepts_df: pd.DataFrame, session: Session, force: bool = False
+    ) -> None:
+        """Build the entire index from a pandas DataFrame of OMOP concepts.
+
+        The process includes:
+        1. Optionally dropping and recreating the database schema.
+        2. Generating embeddings for the concepts.
+        3. Inserting the data into the database.
+        4. Storing index metadata (e.g., embedding model name).
+        5. Creating the HNSW index for fast ANN search.
+
+        Args:
+        ----
+            concepts_df: A DataFrame with the concepts to index.
+            session: The SQLAlchemy session.
+            force: If True, drops all existing data and schema before building.
+
+        """
+        if force:
+            logger.info(
+                "Force option enabled. Dropping and recreating database schema..."
+            )
+            Base.metadata.drop_all(engine)
+            dal.create_database_schema(engine)
+            logger.info("Schema recreated.")
+
+        logger.info("Generating embeddings for concepts...")
+        concepts_df.dropna(subset=["concept_name"], inplace=True)
+        concepts_df = concepts_df[concepts_df["concept_name"].str.len() > 1]
+
+        if not concepts_df.empty:
+            embeddings = self.embedder.encode_batch(
+                concepts_df["concept_name"].tolist()
+            )
+            concepts_df["embedding"] = list(embeddings)
+            dal.bulk_insert_omop_concepts(session, concepts_df)
+
+        logger.info("All concepts have been inserted.")
+        logger.info("Storing index metadata...")
+
+        # Store metadata about the index build
+        metadata_to_store = {
+            "name": self.embedder.get_model_name(),
+            "dimension": self.embedder.get_dimension(),
+        }
+        dal.upsert_index_metadata(
+            session, key="embedding_model_name", value=metadata_to_store
+        )
+        logger.info(f"Metadata stored: {metadata_to_store}")
+
+        logger.info("Creating HNSW index for fast vector search...")
+        logger.info("This may take a while...")
+        session.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+        session.execute(
+            text(
+                "CREATE INDEX ON omop_concept_index "
+                "USING hnsw (embedding vector_cosine_ops);"
+            )
+        )
+        session.commit()
+        logger.info("HNSW index created successfully.")
+        logger.info("Index build complete.")
 
     def build_index_from_csv(
         self, csv_path: str, session: Session, force: bool = False
@@ -52,6 +118,7 @@ class IndexBuilder:
         6. Creating the HNSW index for fast ANN search.
 
         Args:
+        ----
             csv_path: The file path to the OMOP CONCEPT.csv file.
             session: The SQLAlchemy session.
             force: If True, drops all existing data and schema before building.
@@ -61,7 +128,7 @@ class IndexBuilder:
             logger.info(
                 "Force option enabled. Dropping and recreating database schema..."
             )
-            dal.Base.metadata.drop_all(engine)
+            Base.metadata.drop_all(engine)
             dal.create_database_schema(engine)
             logger.info("Schema recreated.")
 

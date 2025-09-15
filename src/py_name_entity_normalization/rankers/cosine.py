@@ -19,10 +19,12 @@ class CosineSimilarityRanker(IRanker):
         """Re-ranks candidates by converting their distance to a similarity score.
 
         Args:
+        ----
             query: The original query text (unused in this ranker).
             candidates: A list of Candidate objects from the database.
 
         Returns:
+        -------
             A list of RankedCandidate objects, sorted by the new similarity
             score in descending order.
 

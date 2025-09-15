@@ -21,6 +21,7 @@ class CrossEncoderRanker(IRanker):
         """Initialize the CrossEncoderRanker.
 
         Args:
+        ----
             model_name: The name of the Cross-Encoder model to load.
             device: The device to run the model on (e.g., 'cpu', 'cuda').
                     If None, it will auto-detect CUDA availability.
@@ -42,10 +43,12 @@ class CrossEncoderRanker(IRanker):
         """Re-ranks candidates using the Cross-Encoder model.
 
         Args:
+        ----
             query: The original query text.
             candidates: A list of Candidate objects from the database.
 
         Returns:
+        -------
             A list of RankedCandidate objects, sorted by the cross-encoder's
             score in descending order.
 

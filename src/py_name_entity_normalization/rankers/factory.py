@@ -14,12 +14,15 @@ def get_ranker(settings: Settings) -> IRanker:
     returns the corresponding ranker instance.
 
     Args:
+    ----
         settings: The application settings object.
 
     Returns:
+    -------
         An instance of a class that implements the IRanker interface.
 
     Raises:
+    ------
         ValueError: If the configured reranking strategy is not supported.
 
     """

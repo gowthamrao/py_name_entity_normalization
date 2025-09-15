@@ -6,7 +6,7 @@ declarative mapping with full type annotations.
 """
 
 from datetime import datetime
-from typing import List
+from typing import Any, Dict, List
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import JSON, DateTime, Integer, String, func
@@ -33,7 +33,7 @@ class IndexMetadata(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     key: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
-    value: Mapped[dict] = mapped_column(JSON, nullable=False)
+    value: Mapped[Dict[str, Any]] = mapped_column(JSON, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

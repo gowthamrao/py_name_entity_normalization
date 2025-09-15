@@ -43,11 +43,11 @@ def build_index(
             help="Drop and recreate the entire database schema before indexing.",
         ),
     ] = False,
-):
+) -> None:
     """Build the vector index from a CSV file of OMOP concepts."""
     console.rule("[bold green]Starting Index Build[/bold green]")
     try:
-        settings = Settings()
+        settings = Settings()  # type: ignore
         index_builder = IndexBuilder(settings)
         with get_session() as session:
             index_builder.build_index_from_csv(
@@ -61,11 +61,11 @@ def build_index(
 
 
 @app.command()
-def verify_index():
+def verify_index() -> None:
     """Verify the status and metadata of the existing index."""
     console.rule("[bold blue]Verifying Index[/bold blue]")
     try:
-        settings = Settings()
+        settings = Settings()  # type: ignore
         # Initializing the engine performs the consistency check
         engine = NormalizationEngine(settings)
         console.print("✅ NormalizationEngine initialized successfully.")

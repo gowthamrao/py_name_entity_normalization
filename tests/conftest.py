@@ -5,18 +5,21 @@ mocked services, database sessions, and configuration objects. This approach
 promotes code reuse and makes tests cleaner and easier to maintain.
 """
 
+from typing import Any, Generator, Iterator, List
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+from pytest_mock import MockerFixture
+from sqlalchemy.engine import Engine
 
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
 from py_name_entity_normalization.core.schemas import Candidate, RankedCandidate
 from py_name_entity_normalization.database.models import Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 
 @pytest.fixture(scope="function")
@@ -25,7 +28,7 @@ def test_settings() -> Settings:
     # Match the default model dimension to avoid pgvector errors during testing
     # when the test settings are used to configure a model but the default settings
     # were used when the ORM model was defined.
-    return Settings(
+    return Settings(  # type: ignore
         DATABASE_URL="postgresql+psycopg://user:password@localhost:5432/nen_db_test",
         EMBEDDING_MODEL_NAME="test/dummy-bert",
         CROSS_ENCODER_MODEL_NAME="test/dummy-cross-encoder",
@@ -34,7 +37,7 @@ def test_settings() -> Settings:
 
 
 @pytest.fixture(scope="function")
-def db_engine(test_settings):
+def db_engine(test_settings: Settings) -> Generator[Engine, Any, None]:
     """Yield a SQLAlchemy engine for the test database.
 
     Creates and drops the database schema.
@@ -46,7 +49,7 @@ def db_engine(test_settings):
 
 
 @pytest.fixture
-def db_session(db_engine):
+def db_session(db_engine: Engine) -> Generator[Session, Any, None]:
     """Yield a SQLAlchemy session for a single test.
 
     Rolls back transactions to ensure test isolation.
@@ -61,7 +64,7 @@ def db_session(db_engine):
 
 
 @pytest.fixture
-def mock_db_session():
+def mock_db_session() -> Generator[MagicMock, Any, None]:
     """Provide a mock of the SQLAlchemy session.
 
     This fixture patches the `get_session` context manager to yield a
@@ -76,7 +79,7 @@ def mock_db_session():
 
 
 @pytest.fixture
-def mock_embedder(test_settings) -> MagicMock:
+def mock_embedder(test_settings: Settings) -> MagicMock:
     """Provide a mock of the IEmbedder interface."""
     embedder = MagicMock(spec=IEmbedder)
     dim = test_settings.EMBEDDING_MODEL_DIMENSION
@@ -93,7 +96,9 @@ def mock_ranker() -> MagicMock:
     """Provide a mock of the IRanker interface."""
     ranker = MagicMock(spec=IRanker)
 
-    def dummy_rank(query, candidates):
+    def dummy_rank(
+        query: str, candidates: List[Candidate]
+    ) -> List[RankedCandidate]:
         # Simply assign a dummy score and return as RankedCandidate
         return [
             RankedCandidate(**c.model_dump(), rerank_score=0.99) for c in candidates
@@ -104,7 +109,7 @@ def mock_ranker() -> MagicMock:
 
 
 @pytest.fixture
-def comprehensive_candidates() -> list[Candidate]:
+def comprehensive_candidates() -> List[Candidate]:
     """Provide a more comprehensive list of sample Candidate objects."""
     return [
         # Exact match, different cases
@@ -201,7 +206,7 @@ def comprehensive_candidates() -> list[Candidate]:
 
 
 @pytest.fixture
-def mock_pandas_read_csv(mocker):
+def mock_pandas_read_csv(mocker: MockerFixture) -> MagicMock:
     """Mock pandas.read_csv to return a controlled DataFrame iterator."""
     dummy_df = pd.DataFrame(
         {
