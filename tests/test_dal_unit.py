@@ -5,11 +5,9 @@ ensuring that the SQLAlchemy query construction is correct without requiring a
 live database connection.
 """
 
-from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
-
 from py_name_entity_normalization.database import dal
 from py_name_entity_normalization.database.models import OMOPIndex
 

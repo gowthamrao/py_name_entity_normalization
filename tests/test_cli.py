@@ -3,9 +3,8 @@
 import runpy
 from unittest.mock import MagicMock
 
-from pytest_mock import MockerFixture
-
 from py_name_entity_normalization.cli import app
+from pytest_mock import MockerFixture
 from typer.testing import CliRunner
 
 runner = CliRunner()
