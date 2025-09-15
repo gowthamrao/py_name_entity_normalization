@@ -11,16 +11,15 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pandas as pd
 import pytest
-from pytest_mock import MockerFixture
-from sqlalchemy import create_engine
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session
-
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
 from py_name_entity_normalization.core.schemas import Candidate, RankedCandidate
 from py_name_entity_normalization.database import dal
 from py_name_entity_normalization.database.models import Base
+from pytest_mock import MockerFixture
+from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
 
 
 @pytest.fixture(scope="function")
