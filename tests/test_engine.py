@@ -4,14 +4,13 @@ from typing import List, cast
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_mock import MockerFixture
-
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.engine import NormalizationEngine
 from py_name_entity_normalization.core.schemas import Candidate, NormalizationInput
 from py_name_entity_normalization.rankers.cosine import CosineSimilarityRanker
 from py_name_entity_normalization.rankers.factory import get_ranker
 from py_name_entity_normalization.rankers.llm import LLMRanker
+from pytest_mock import MockerFixture
 
 
 @pytest.fixture
