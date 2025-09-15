@@ -1,9 +1,27 @@
 """Re-ranker implementation using a Cross-Encoder model."""
 
-from typing import List
+from typing import Any, List, cast
 
-import torch
-from sentence_transformers.cross_encoder import CrossEncoder
+try:  # pragma: no cover - optional dependency
+    import torch
+except ModuleNotFoundError:  # pragma: no cover - provide minimal stub
+    import sys
+    import types
+
+    torch = types.ModuleType("torch")
+    cuda = cast(Any, types.ModuleType("cuda"))
+
+    def _is_available() -> bool:  # pragma: no cover - runtime stub
+        return False
+
+    cuda.is_available = _is_available
+    torch.cuda = cuda
+    sys.modules["torch"] = torch
+
+try:  # pragma: no cover - optional dependency
+    from sentence_transformers.cross_encoder import CrossEncoder
+except ModuleNotFoundError:  # pragma: no cover - allow tests to patch
+    CrossEncoder = cast(Any, None)
 
 from ..core.interfaces import IRanker
 from ..core.schemas import Candidate, RankedCandidate
