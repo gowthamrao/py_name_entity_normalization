@@ -1,6 +1,7 @@
 """Tests for the abstract base classes in core.interfaces."""
 
 import pytest
+
 from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
 
 

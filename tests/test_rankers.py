@@ -5,13 +5,14 @@ from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
+from pytest_mock import MockerFixture
+
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.schemas import Candidate
 from py_name_entity_normalization.rankers.cosine import CosineSimilarityRanker
 from py_name_entity_normalization.rankers.cross_encoder import CrossEncoderRanker
 from py_name_entity_normalization.rankers.factory import get_ranker
 from py_name_entity_normalization.rankers.llm import LLMRanker
-from pytest_mock import MockerFixture
 
 
 def test_cosine_similarity_ranker(

@@ -8,6 +8,7 @@ live database connection.
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
+
 from py_name_entity_normalization.database import dal
 from py_name_entity_normalization.database.models import OMOPIndex
 

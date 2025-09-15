@@ -5,21 +5,22 @@ mocked services, database sessions, and configuration objects. This approach
 promotes code reuse and makes tests cleaner and easier to maintain.
 """
 
-from typing import Any, Generator, List
+from typing import Any, Generator, List, cast
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
+from pytest_mock import MockerFixture
+from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
+
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
 from py_name_entity_normalization.core.schemas import Candidate, RankedCandidate
 from py_name_entity_normalization.database import dal
 from py_name_entity_normalization.database.models import Base
-from pytest_mock import MockerFixture
-from sqlalchemy import create_engine
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session
 
 
 @pytest.fixture(scope="function")
@@ -28,11 +29,15 @@ def test_settings() -> Settings:
     # Match the default model dimension to avoid pgvector errors during testing
     # when the test settings are used to configure a model but the default settings
     # were used when the ORM model was defined.
-    return Settings(  # type: ignore
+    return Settings(
         DATABASE_URL="postgresql+psycopg://user:password@localhost:5432/nen_db_test",
         EMBEDDING_MODEL_NAME="test/dummy-bert",
         CROSS_ENCODER_MODEL_NAME="test/dummy-cross-encoder",
         EMBEDDING_MODEL_DIMENSION=768,
+        RERANKING_STRATEGY="cosine",
+        DEFAULT_TOP_K=50,
+        DEFAULT_CONFIDENCE_THRESHOLD=0.85,
+        INDEXING_BATCH_SIZE=1024,
     )
 
 
@@ -216,4 +221,4 @@ def mock_pandas_read_csv(mocker: MockerFixture) -> MagicMock:
         }
     )
     # Return an iterator to simulate chunking
-    return mocker.patch("pandas.read_csv", return_value=[dummy_df])
+    return cast(MagicMock, mocker.patch("pandas.read_csv", return_value=[dummy_df]))
