@@ -3,9 +3,8 @@
 import runpy
 from unittest.mock import MagicMock
 
-from typer.testing import CliRunner
-
 from py_name_entity_normalization.cli import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 

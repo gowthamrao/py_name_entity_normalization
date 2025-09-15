@@ -6,7 +6,6 @@ workflow from the NormalizationEngine to the database.
 
 import pandas as pd
 import pytest
-
 from py_name_entity_normalization.core.engine import NormalizationEngine
 from py_name_entity_normalization.core.schemas import NormalizationInput
 from py_name_entity_normalization.indexer.builder import IndexBuilder

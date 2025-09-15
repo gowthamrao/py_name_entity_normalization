@@ -25,9 +25,11 @@ class IEmbedder(ABC):
         """Encode a single string of text into an embedding vector.
 
         Args:
+        ----
             text: The input text.
 
         Returns:
+        -------
             A NumPy array representing the embedding.
 
         """
@@ -38,9 +40,11 @@ class IEmbedder(ABC):
         """Encode a batch of texts into embedding vectors.
 
         Args:
+        ----
             texts: A list of input texts.
 
         Returns:
+        -------
             A NumPy array of shape (n_texts, embedding_dimension).
 
         """
@@ -52,7 +56,8 @@ class IEmbedder(ABC):
 
         This is crucial for the model consistency check.
 
-        Returns:
+        Returns
+        -------
             The model name string.
 
         """
@@ -62,7 +67,8 @@ class IEmbedder(ABC):
     def get_dimension(self) -> int:
         """Return the dimension of the embeddings produced by the model.
 
-        Returns:
+        Returns
+        -------
             The embedding dimension as an integer.
 
         """
@@ -81,11 +87,13 @@ class IRanker(ABC):
         """Re-ranks a list of candidates based on a query.
 
         Args:
+        ----
             query: The original query text.
             candidates: A list of Candidate objects retrieved from the
                         ANN search stage.
 
         Returns:
+        -------
             A list of RankedCandidate objects, sorted by their new
             re-ranking score in descending order.
 

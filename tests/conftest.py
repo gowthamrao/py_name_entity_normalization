@@ -5,18 +5,18 @@ mocked services, database sessions, and configuration objects. This approach
 promotes code reuse and makes tests cleaner and easier to maintain.
 """
 
+import os
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
 from py_name_entity_normalization.core.schemas import Candidate, RankedCandidate
 from py_name_entity_normalization.database.models import Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 
 @pytest.fixture(scope="function")
@@ -25,8 +25,12 @@ def test_settings() -> Settings:
     # Match the default model dimension to avoid pgvector errors during testing
     # when the test settings are used to configure a model but the default settings
     # were used when the ORM model was defined.
+    database_url = os.getenv(
+        "DATABASE_URL",
+        "postgresql+psycopg://user:password@localhost:5432/nen_db_test",
+    )
     return Settings(
-        DATABASE_URL="postgresql+psycopg://user:password@localhost:5432/nen_db_test",
+        DATABASE_URL=database_url,
         EMBEDDING_MODEL_NAME="test/dummy-bert",
         CROSS_ENCODER_MODEL_NAME="test/dummy-cross-encoder",
         EMBEDDING_MODEL_DIMENSION=768,

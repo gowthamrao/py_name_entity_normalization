@@ -17,9 +17,11 @@ def clean_text(text: str) -> str:
     - Removing special characters that are unlikely to be informative.
 
     Args:
+    ----
         text: The input string.
 
     Returns:
+    -------
         The cleaned string.
 
     """

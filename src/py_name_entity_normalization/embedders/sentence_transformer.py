@@ -16,6 +16,7 @@ class SentenceTransformerEmbedder(IEmbedder):
         """Initialize the SentenceTransformerEmbedder.
 
         Args:
+        ----
             model_name: The name of the model to load from Hugging Face Hub.
             device: The device to run the model on (e.g., 'cpu', 'cuda').
                     If None, it will auto-detect CUDA availability.
@@ -36,9 +37,11 @@ class SentenceTransformerEmbedder(IEmbedder):
         """Encode a single string of text into an embedding vector.
 
         Args:
+        ----
             text: The input text.
 
         Returns:
+        -------
             A NumPy array representing the embedding.
 
         """
@@ -50,9 +53,11 @@ class SentenceTransformerEmbedder(IEmbedder):
         """Encode a batch of texts into embedding vectors.
 
         Args:
+        ----
             texts: A list of input texts.
 
         Returns:
+        -------
             A NumPy array of shape (n_texts, embedding_dimension).
 
         """
@@ -67,7 +72,8 @@ class SentenceTransformerEmbedder(IEmbedder):
     def get_model_name(self) -> str:
         """Return the name of the underlying embedding model.
 
-        Returns:
+        Returns
+        -------
             The model name string.
 
         """
@@ -76,7 +82,8 @@ class SentenceTransformerEmbedder(IEmbedder):
     def get_dimension(self) -> int:
         """Return the dimension of the embeddings produced by the model.
 
-        Returns:
+        Returns
+        -------
             The embedding dimension as an integer.
 
         """

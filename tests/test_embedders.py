@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
-
 from py_name_entity_normalization.embedders.factory import get_embedder
 from py_name_entity_normalization.embedders.sentence_transformer import (
     SentenceTransformerEmbedder,

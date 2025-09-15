@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
-
 from py_name_entity_normalization.rankers.cosine import CosineSimilarityRanker
 from py_name_entity_normalization.rankers.cross_encoder import CrossEncoderRanker
 from py_name_entity_normalization.rankers.factory import get_ranker

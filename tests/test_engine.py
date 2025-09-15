@@ -1,7 +1,6 @@
 """Tests for the NormalizationEngine."""
 
 import pytest
-
 from py_name_entity_normalization.core.engine import NormalizationEngine
 from py_name_entity_normalization.core.schemas import NormalizationInput
 from py_name_entity_normalization.rankers.cosine import CosineSimilarityRanker

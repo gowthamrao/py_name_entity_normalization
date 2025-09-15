@@ -1,7 +1,6 @@
 """Tests for utility functions."""
 
 import pytest
-
 from py_name_entity_normalization.utils.preprocessing import clean_text
 
 

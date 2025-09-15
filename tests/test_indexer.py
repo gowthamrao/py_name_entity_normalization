@@ -4,7 +4,6 @@ from unittest.mock import call
 
 import pandas as pd
 import pytest
-
 from py_name_entity_normalization.indexer.builder import IndexBuilder
 
 

@@ -24,6 +24,7 @@ class IndexBuilder:
         """Initialize the IndexBuilder.
 
         Args:
+        ----
             settings: The application settings object.
 
         """
@@ -52,6 +53,7 @@ class IndexBuilder:
         6. Creating the HNSW index for fast ANN search.
 
         Args:
+        ----
             csv_path: The file path to the OMOP CONCEPT.csv file.
             session: The SQLAlchemy session.
             force: If True, drops all existing data and schema before building.
