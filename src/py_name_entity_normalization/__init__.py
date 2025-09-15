@@ -35,6 +35,7 @@ def __getattr__(name: str) -> Any:  # pragma: no cover - thin wrapper
         return {"NormalizationEngine": NormalizationEngine, "engine": engine}[name]
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
+
 # Define what is available for public import
 __all__ = [
     "NormalizationEngine",
