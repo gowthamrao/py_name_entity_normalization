@@ -5,10 +5,9 @@ from unittest.mock import MagicMock, call
 
 import pandas as pd
 import pytest
-from pytest_mock import MockerFixture
-
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.indexer.builder import IndexBuilder
+from pytest_mock import MockerFixture
 
 
 @pytest.fixture
