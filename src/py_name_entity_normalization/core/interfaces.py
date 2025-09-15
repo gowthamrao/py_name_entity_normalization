@@ -22,7 +22,7 @@ class IEmbedder(ABC):
     """
 
     @abstractmethod
-    def encode(self, text: str) -> NDArray[np.float_]:
+    def encode(self, text: str) -> NDArray[np.float64]:
         """Encode a single string of text into an embedding vector.
 
         Args:
@@ -37,7 +37,7 @@ class IEmbedder(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def encode_batch(self, texts: List[str]) -> NDArray[np.float_]:
+    def encode_batch(self, texts: List[str]) -> NDArray[np.float64]:
         """Encode a batch of texts into embedding vectors.
 
         Args:
