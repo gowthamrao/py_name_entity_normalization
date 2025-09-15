@@ -5,20 +5,20 @@ mocked services, database sessions, and configuration objects. This approach
 promotes code reuse and makes tests cleaner and easier to maintain.
 """
 
-from typing import Any, Generator, Iterator, List
+from typing import Any, Generator, List
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
-from pytest_mock import MockerFixture
-from sqlalchemy.engine import Engine
-
 from py_name_entity_normalization.config import Settings
 from py_name_entity_normalization.core.interfaces import IEmbedder, IRanker
 from py_name_entity_normalization.core.schemas import Candidate, RankedCandidate
+from py_name_entity_normalization.database import dal
 from py_name_entity_normalization.database.models import Base
+from pytest_mock import MockerFixture
 from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 
@@ -43,7 +43,7 @@ def db_engine(test_settings: Settings) -> Generator[Engine, Any, None]:
     Creates and drops the database schema.
     """
     engine = create_engine(test_settings.DATABASE_URL)
-    Base.metadata.create_all(engine)
+    dal.create_database_schema(engine)
     yield engine
     Base.metadata.drop_all(engine)
 
@@ -96,9 +96,7 @@ def mock_ranker() -> MagicMock:
     """Provide a mock of the IRanker interface."""
     ranker = MagicMock(spec=IRanker)
 
-    def dummy_rank(
-        query: str, candidates: List[Candidate]
-    ) -> List[RankedCandidate]:
+    def dummy_rank(query: str, candidates: List[Candidate]) -> List[RankedCandidate]:
         # Simply assign a dummy score and return as RankedCandidate
         return [
             RankedCandidate(**c.model_dump(), rerank_score=0.99) for c in candidates
