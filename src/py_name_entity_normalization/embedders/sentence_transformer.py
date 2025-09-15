@@ -1,11 +1,30 @@
 """Concrete implementation of the IEmbedder interface using sentence-transformers."""
 
-from typing import List, cast
+from typing import Any, List, cast
 
 import numpy as np
-import torch
 from numpy.typing import NDArray
-from sentence_transformers import SentenceTransformer
+
+try:  # pragma: no cover - optional dependency
+    import torch
+except ModuleNotFoundError:  # pragma: no cover - provide minimal stub
+    import sys
+    import types
+
+    torch = types.ModuleType("torch")
+
+    class _Cuda:
+        @staticmethod
+        def is_available() -> bool:  # pragma: no cover - runtime stub
+            return False
+
+    torch.cuda = _Cuda()
+    sys.modules["torch"] = torch
+
+try:  # pragma: no cover - optional dependency
+    from sentence_transformers import SentenceTransformer
+except ModuleNotFoundError:  # pragma: no cover - allow tests to patch
+    SentenceTransformer = cast(Any, None)
 
 from ..core.interfaces import IEmbedder
 
@@ -34,7 +53,7 @@ class SentenceTransformerEmbedder(IEmbedder):
         self.model = SentenceTransformer(self._model_name, device=self.device)
         print("Model loaded successfully.")
 
-    def encode(self, text: str) -> NDArray[np.float_]:
+    def encode(self, text: str) -> NDArray[np.float64]:
         """Encode a single string of text into an embedding vector.
 
         Args:
@@ -47,7 +66,7 @@ class SentenceTransformerEmbedder(IEmbedder):
 
         """
         return cast(
-            NDArray[np.float_],
+            NDArray[np.float64],
             self.model.encode(
                 text,
                 convert_to_numpy=True,
@@ -56,7 +75,7 @@ class SentenceTransformerEmbedder(IEmbedder):
             ),
         )
 
-    def encode_batch(self, texts: List[str]) -> NDArray[np.float_]:
+    def encode_batch(self, texts: List[str]) -> NDArray[np.float64]:
         """Encode a batch of texts into embedding vectors.
 
         Args:
@@ -69,7 +88,7 @@ class SentenceTransformerEmbedder(IEmbedder):
 
         """
         return cast(
-            NDArray[np.float_],
+            NDArray[np.float64],
             self.model.encode(
                 texts,
                 convert_to_numpy=True,
